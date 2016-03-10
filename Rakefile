@@ -15,7 +15,6 @@ PuppetLint::RakeTask.new(:lint) do |config|
   ]
   config.ignore_paths = ["tests/**/*.pp", "vendor/**/*.pp","examples/**/*.pp", "spec/**/*.pp", "pkg/**/*.pp"]
 end
-require 'puppetlabs_spec_helper/rake_tasks'
 
 def run(command)
   puts "Running #{command}"
@@ -25,7 +24,6 @@ end
 
 desc 'Install puppet modules with librarian-puppet'
 task :librarian_spec_prep do
-  raise "librarian_spec_prep called but NO_LIBRARIAN set" if ENV['NO_LIBRARIAN']
   location = ENV['LOCATION'] || 'spec/fixtures'
   if librarian_puppet_tmp = ENV['LIBRARIAN_PUPPET_TMP']
     command = "cd #{location} && LIBRARIAN_PUPPET_TMP=#{librarian_puppet_tmp} bundle exec librarian-puppet install"
@@ -33,5 +31,13 @@ task :librarian_spec_prep do
     command = "cd #{location} && bundle exec librarian-puppet install"
   end
   status = run(command)
-  raise "libarian-puppet-install exited non-zero" unless status
+  raise "libarian-puppet install exited non-zero" unless status
+end
+
+desc "Run spec tests using librarian-puppet to checkout modules"
+task :librarian_spec do
+  Rake::Task[:librarian_spec_prep].invoke
+  Rake::Task[:spec_prep].invoke
+  Rake::Task[:spec_standalone].invoke
+  Rake::Task[:spec_clean].invoke
 end
