@@ -7,9 +7,13 @@ RSpec.configure do |c|
   c.hiera_config    = File.join(fixture_path, 'hiera.yaml')
   c.environmentpath = File.join(Dir.pwd, 'spec')
   c.default_facts   = {
-    :kernel          => 'Linux',
-    :osfamily        => 'RedHat',
-    :operatingsystem => 'RedHat',
+    :concat_basedir            => '/var/lib/puppet/concat',
+    :kernel                    => 'Linux',
+    :osfamily                  => 'RedHat',
+    :operatingsystem           => 'RedHat',
     :operatingsystemmajrelease => '7',
+    :path                      => ['/bin', '/usr/bin'],
+    :redispv                   => '/dev/sdb',
+    :espv                      => '/dev/sdc',
   }
 end

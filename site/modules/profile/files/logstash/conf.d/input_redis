@@ -1,0 +1,13 @@
+### MANAGED BY PUPPET ###
+input {
+  redis {
+    data_type => "list"
+    key       => "logstash"
+    codec     => "json"
+   # codec => multiline {
+   #     pattern => "(^\s+at .+)"
+   #     what => "previous"
+   # }
+  }
+}
+

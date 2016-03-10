@@ -1,0 +1,8 @@
+### MANAGED BY PUPPET ###
+output {
+  redis {
+    data_type => "list"
+    key => "logstash"
+  }
+}
+

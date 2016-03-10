@@ -1,0 +1,7 @@
+### MANAGED BY PUPPET ###
+# Used only in Beaker.
+output {
+  elasticsearch {
+    protocol => "http"
+  }
+}
