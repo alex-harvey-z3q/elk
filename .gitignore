@@ -1,0 +1,6 @@
+.bin/
+.gems/
+Gemfile.lock
+spec/fixtures/
+.vagrant/
+pkg/

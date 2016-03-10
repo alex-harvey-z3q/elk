@@ -1,0 +1,7 @@
+fixtures:
+  # repositories:
+  # repositories is empty because we use librarian-puppet
+  # and this is called from the Rakefile.
+  symlinks:
+    'role': "#{source_dir}/site/modules/role"
+    'profile': "#{source_dir}/site/modules/profile"
