@@ -1,9 +1,10 @@
-class profile::base {
-#  class { 'yum':
-#    stage => pre,
-#  }
-  include ntp
+class profile::base (
+  Hash $firewall_multis,
+) {
+  create_resources(firewall_multi, $firewall_multis)
   include profile::base::firewall
+  include profile::base::yum
+  include ntp
   #  include profile::base::logrotate
   #  include profile::base::filebeat
 }
