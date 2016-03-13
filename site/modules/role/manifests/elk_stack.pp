@@ -31,17 +31,16 @@ class role::elk_stack {
 
   exec { 'set-kibana-index-replicas-to-zero':
     path        => '/usr/bin',
-    command     => "curl -XPUT 'localhost:9200/.kibana/_settings'
-                     -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
+    command     => "curl -XPUT 'localhost:9200/.kibana/_settings' -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
     refreshonly => true,
     logoutput   => true,
   }
 
   $cluster_name = $::profile::elasticsearch::data_node::config['cluster.name']
 
-  Service["elasticsearch-instance-$cluster_name"]
+  Service["elasticsearch-instance-${cluster_name}"]
     ~> Exec['wait-for-es-master']
-      -> Service["elasticsearch-instance-$cluster_name-client-instance"]
+      -> Service["elasticsearch-instance-${cluster_name}-client-instance"]
         ~> Exec['wait-for-es-client']
           -> Service['kibana4']
             ~> Exec['wait-for-kibana']
