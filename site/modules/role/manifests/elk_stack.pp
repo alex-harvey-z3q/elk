@@ -30,19 +30,25 @@ class role::elk_stack {
   # https://discuss.elastic.co/t/unassigned-shard-after-kibana-4-joins-cluster/39962/4
 
   exec { 'set-kibana-index-replicas-to-zero':
-    path        => '/usr/bin',
-    command     => "curl -XPUT 'localhost:9200/.kibana/_settings' -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
-    refreshonly => true,
-    logoutput   => true,
+    path      => '/usr/bin',
+    command   => "curl -XPUT 'localhost:9200/.kibana/_settings' -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
+    logoutput => true,
+    unless    => "curl 'localhost:9200/.kibana/_settings?pretty' 2>/dev/null | grep -q number_of_replicas.*0",
   }
 
   $cluster_name = $::profile::elasticsearch::data_node::config['cluster.name']
 
   Service["elasticsearch-instance-${cluster_name}"]
-    ~> Exec['wait-for-es-master']
-      -> Service["elasticsearch-instance-${cluster_name}-client-instance"]
-        ~> Exec['wait-for-es-client']
-          -> Service['kibana4']
-            ~> Exec['wait-for-kibana']
-              ~> Exec['set-kibana-index-replicas-to-zero']
+  ~>
+  Exec['wait-for-es-master']
+  ->
+  Service["elasticsearch-instance-${cluster_name}-client-instance"]
+  ~>
+  Exec['wait-for-es-client']
+  ->
+  Service['kibana4']
+  ~>
+  Exec['wait-for-kibana']
+  ->
+  Exec['set-kibana-index-replicas-to-zero']
 }
