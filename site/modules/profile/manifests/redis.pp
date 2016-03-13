@@ -1,14 +1,17 @@
 class profile::redis (
   Hash $firewall_multis,
   Hash $volume_groups,
-  String $workdir,
-  String $maxmemory,
   Integer[30000] $uid,
   Integer[30000] $gid,
+  Integer[0,1] $vm_overcommit_memory,
+  Integer $net_core_somaxconn,
 ) {
   create_resources('firewall_multi', $firewall_multis)
-
   create_resources('lvm::volume_group', $volume_groups)
+
+  include redis
+  $workdir = $::redis::workdir
+
   file { $workdir:
     ensure => directory,
     owner  => 'redis',
@@ -17,10 +20,6 @@ class profile::redis (
   }
   Mount[$workdir] -> File[$workdir]
 
-  class { 'redis':
-    workdir   => $workdir,
-    maxmemory => $maxmemory,
-  }
   group { 'redis':
     ensure => present,
     gid    => $gid,
@@ -36,5 +35,12 @@ class profile::redis (
   }
   User['redis'] -> Package['redis']
 
-  sysctl { 'vm.overcommit_memory': value => 1 }
+  include disable_transparent_hugepage
+  Service['disable-transparent-hugepage']
+  ->
+  sysctl { 'vm.overcommit_memory': value => $vm_overcommit_memory }
+  ->
+  sysctl { 'net.core.somaxconn': value => $net_core_somaxconn }
+  ->
+  Service['redis']
 }
