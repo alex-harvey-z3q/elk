@@ -46,7 +46,7 @@ class profile::logstash::indexer (
 
   file { '/etc/init.d/logstash-indexer':
     ensure  => file,
-    source  => 'puppet:///modules/site/lsnode/init.d/logstash-indexer',
+    source  => 'puppet:///modules/profile/logstash/init.d/logstash-indexer',
     owner   => 'root',
     group   => 'root',
     mode    => '0755',

@@ -46,7 +46,7 @@ class profile::logstash::shipper (
 
   file { '/etc/init.d/logstash-shipper':
     ensure  => file,
-    source  => 'puppet:///modules/site/lsnode/init.d/logstash-shipper',
+    source  => 'puppet:///modules/profile/logstash/init.d/logstash-shipper',
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
