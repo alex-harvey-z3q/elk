@@ -5,7 +5,7 @@ mod 'puppetlabs/ntp'
 mod 'puppetlabs/lvm'
 mod 'puppetlabs/firewall'
 mod 'alexharvey/firewall_multi'
-mod 'ceritsc/yum'
+mod 'alexharvey/disable_transparent_hugepage'
 mod 'pcfens/filebeat',
   :git => 'https://github.com/pcfens/puppet-filebeat.git'
 mod 'elasticsearch/elasticsearch',
@@ -14,9 +14,9 @@ mod 'elasticsearch/logstash',
   :git => 'https://github.com/elastic/puppet-logstash.git'
 mod 'arioch/redis',
   :git => 'https://github.com/arioch/puppet-redis.git'
-# note author of kibana4 is currently going nuts breaking backwards compatibility..
 mod 'lesaux/kibana4',
-  :git => 'https://github.com/lesaux/puppet-kibana4.git'
+  :git => 'https://github.com/lesaux/puppet-kibana4.git',
+  :ref => '43a6e5dca4778695364d01f86ca1948b7eae7575'
 mod 'jfryman/nginx',
   :git => 'https://github.com/jfryman/puppet-nginx.git'
 mod 'camptocamp/archive',
