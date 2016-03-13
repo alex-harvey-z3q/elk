@@ -11,6 +11,7 @@ RSpec.configure do |c|
     :kernel                    => 'Linux',
     :osfamily                  => 'RedHat',
     :operatingsystem           => 'RedHat',
+    :operatingsystemrelease    => '7.2.1511',
     :operatingsystemmajrelease => '7',
     :path                      => ['/bin', '/usr/bin'],
     :redispv                   => '/dev/sdb',
