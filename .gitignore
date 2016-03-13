@@ -1,6 +1,9 @@
 .bin/
 .gems/
 Gemfile.lock
-spec/fixtures/
 .vagrant/
 pkg/
+log/
+spec/fixtures/modules
+spec/fixtures/.librarian
+spec/fixtures/.tmp
