@@ -392,12 +392,12 @@ profile::elasticsearch::data_node::config:
   'node.master': true
   'node.data': true
   'index.number_of_replicas': 0
-  'bootstrap.mlockall': true
 profile::elasticsearch::data_node::init_defaults:
   JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64'
   ES_HEAP_SIZE: '1g'
   MAX_MAP_COUNT: '262144'
   ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
+profile::elasticsearch::data_node::vm_swappiness: 0
 
 # profile::elasticsearch::client_node
 

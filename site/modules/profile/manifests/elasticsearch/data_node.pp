@@ -4,6 +4,7 @@ class profile::elasticsearch::data_node (
   Hash $volume_groups,
   Hash $config,
   Hash $init_defaults,
+  Integer[0,1] $vm_swappiness,
 ) {
   create_resources('firewall_multi', $firewall_multis)
   create_resources('lvm::volume_group', $volume_groups)
@@ -17,4 +18,8 @@ class profile::elasticsearch::data_node (
     datadir       => $datadir,
   }
   Mount[$datadir] -> File[$datadir]
+
+  Service["elasticsearch-instance-${cluster_name}"]
+  ->
+  sysctl { 'vm.swappiness': value => $vm_swappiness }
 }
