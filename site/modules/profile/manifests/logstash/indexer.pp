@@ -12,14 +12,14 @@ class profile::logstash::indexer (
   # For now, we need to manage configuration and service
   # ourselves.
 
-  create_resources('firewall_multi', $firewall_multis)
+  create_resources(firewall_multi, $firewall_multis)
 
   include logstash
   include profile::logstash::user
   User['logstash'] -> Package['logstash']
 
   include profile::jdk
-  Package[$profile::jdk::package] -> Package['logstash']
+  Package[$::profile::jdk::package] -> Package['logstash']
 
   $dirs = [
     '/etc/logstash/logstash-indexer',
@@ -63,7 +63,7 @@ class profile::logstash::indexer (
     mode   => '0664',
     notify => Service['logstash-indexer'],
   }
-  create_resources('file', $configfiles, $defaults)
+  create_resources(file, $configfiles, $defaults)
 
   service { 'logstash-indexer':
     ensure    => running,

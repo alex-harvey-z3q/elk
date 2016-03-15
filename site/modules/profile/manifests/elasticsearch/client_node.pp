@@ -3,7 +3,7 @@ class profile::elasticsearch::client_node (
   Hash $config,
   Hash $init_defaults,
 ) {
-  create_resources('firewall_multi', $firewall_multis)
+  create_resources(firewall_multi, $firewall_multis)
 
   include elasticsearch
   include profile::elasticsearch

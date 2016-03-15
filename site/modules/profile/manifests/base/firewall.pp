@@ -1,8 +1,9 @@
 class profile::base::firewall {
-  class { ['profile::base::firewall::pre',
-           'profile::base::firewall::post',
-          ]:
-  } ->
+  include firewall
+
+  include profile::base::firewall::pre
+  include profile::base::firewall::post
+
   resources { 'firewall':
     purge => true,
   }

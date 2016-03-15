@@ -7,7 +7,7 @@ class profile::kibana4 (
 ) {
   # Pass in an empty hash here if used in conjunction with
   # profile::nginx.
-  create_resources('firewall_multi', $firewall_multis)
+  create_resources(firewall_multi, $firewall_multis)
 
   include profile::jdk
 

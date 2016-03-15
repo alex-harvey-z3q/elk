@@ -7,7 +7,9 @@ class profile::elasticsearch (
 ) {
   include profile::jdk
 
-  include elasticsearch
+  # Manage the user and group to prevent random UID and
+  # GID assignment by the RPM.
+
   group { 'elasticsearch':
     ensure => present,
     gid    => $gid,
@@ -20,12 +22,14 @@ class profile::elasticsearch (
     shell      => '/sbin/nologin',
     managehome => false,
   }
-  create_resources('elasticsearch::template', $es_templates)
-  create_resources('elasticsearch::plugin', $es_plugins)
+  include elasticsearch
   User['elasticsearch'] -> Package['elasticsearch']
+
+  create_resources(elasticsearch::template, $es_templates)
+  create_resources(elasticsearch::plugin, $es_plugins)
 
   package { 'elastic-curator':
     ensure => installed,
   }
-  create_resources('cron', $curator_jobs)
+  create_resources(cron, $curator_jobs)
 }

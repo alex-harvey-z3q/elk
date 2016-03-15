@@ -7,7 +7,9 @@ class profile::nginx (
 ) {
   create_resources('firewall_multi', $firewall_multis)
 
-  include nginx
+  # Manage the user and group to prevent random UID and
+  # GID assignment by the RPM.
+
   group { 'nginx':
     ensure => present,
     gid    => $gid,
@@ -21,6 +23,8 @@ class profile::nginx (
     shell      => '/sbin/nologin',
     managehome => false,
   }
+
+  include nginx
   nginx::resource::vhost { $::fqdn:
     proxy => "http://$backend_host:$backend_port",
   }

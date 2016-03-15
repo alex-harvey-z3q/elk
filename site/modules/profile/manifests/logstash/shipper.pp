@@ -12,7 +12,7 @@ class profile::logstash::shipper (
   # For now, we need to manage configuration and service
   # ourselves.
 
-  create_resources('firewall_multi', $firewall_multis)
+  create_resources(firewall_multi, $firewall_multis)
 
   include logstash
   include profile::logstash::user
@@ -63,7 +63,7 @@ class profile::logstash::shipper (
     mode   => '0664',
     notify => Service['logstash-shipper'],
   }
-  create_resources('file', $configfiles, $defaults)
+  create_resources(file, $configfiles, $defaults)
 
   service { 'logstash-shipper':
     ensure    => running,
