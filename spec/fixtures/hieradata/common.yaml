@@ -355,16 +355,10 @@ profile::elasticsearch::gid: 30000
 # profile::elasticsearch::data_node
 
 profile::elasticsearch::data_node::firewall_multis:
-  '00100 accept tcp ports 9300-9400 for elasticsearch':
-    dport: '9300-9400'
+  '00100 accept tcp ports 9200 for elasticsearch':
+    dport: '9200'
     action: 'accept'
     proto: 'tcp'
-    source:
-      - '0.0.0.0/0'
-  '00100 accept udp ports 9300-9400 for elasticsearch':
-    dport: '9300-9400'
-    action: 'accept'
-    proto: 'udp'
     source:
       - '0.0.0.0/0'
 profile::elasticsearch::data_node::datadir: '/srv/es'
