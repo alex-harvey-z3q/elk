@@ -266,8 +266,8 @@ logstash::package_dl_timeout: 0
 
 # profile::logstash::user
 
-profile::logstash::user::uid: 30012
-profile::logstash::user::gid: 30012
+profile::logstash::user::uid: 30001
+profile::logstash::user::gid: 30001
 
 # profile::logstash::shipper
 
@@ -343,8 +343,8 @@ profile::redis::volume_groups:
     logical_volumes:
       redislv00:
         mountpath: "%{hiera('redis::workdir')}"
-profile::redis::uid: 30013
-profile::redis::gid: 30013
+profile::redis::uid: 30003
+profile::redis::gid: 30003
 profile::redis::vm_overcommit_memory: 1
 profile::redis::net_core_somaxconn: 1024
 
@@ -352,8 +352,8 @@ profile::redis::net_core_somaxconn: 1024
 
 elasticsearch::package_dl_timeout: 0
 
-profile::elasticsearch::uid: 30010
-profile::elasticsearch::gid: 30010
+profile::elasticsearch::uid: 30000
+profile::elasticsearch::gid: 30000
 
 # profile::elasticsearch::data_node
 
@@ -416,8 +416,8 @@ profile::elasticsearch::client_node::init_defaults:
 
 profile::kibana4::firewall_multis: {}
 profile::kibana4::package_download_url: 'https://download.elastic.co/kibana/kibana/kibana-4.3.1-linux-x64.tar.gz'
-profile::kibana4::uid: 30014
-profile::kibana4::gid: 30014
+profile::kibana4::uid: 30002
+profile::kibana4::gid: 30002
 profile::kibana4::config:
   host: '0.0.0.0'
   port: 5601
@@ -437,5 +437,5 @@ profile::nginx::firewall_multis:
       - '0.0.0.0/0'
 profile::nginx::backend_host: '0.0.0.0'
 profile::nginx::backend_port: 5601
-profile::nginx::uid: 30015
-profile::nginx::gid: 30015
+profile::nginx::uid: 30004
+profile::nginx::gid: 30004
