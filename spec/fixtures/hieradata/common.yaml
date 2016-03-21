@@ -262,7 +262,6 @@ profile::jdk::package: 'java-1.8.0-openjdk'
 
 logstash::install_contrib: true
 logstash::status: 'disabled'
-logstash::package_dl_timeout: 0
 
 # profile::logstash::user
 
@@ -349,8 +348,6 @@ profile::redis::vm_overcommit_memory: 1
 profile::redis::net_core_somaxconn: 1024
 
 # profile::elasticsearch
-
-elasticsearch::package_dl_timeout: 0
 
 profile::elasticsearch::uid: 30000
 profile::elasticsearch::gid: 30000
