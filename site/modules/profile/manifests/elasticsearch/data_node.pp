@@ -9,6 +9,8 @@ class profile::elasticsearch::data_node (
   Hash $curator_jobs,
   Integer[0,1] $vm_swappiness,
 ) {
+  validate_absolute_path($::espv)
+
   create_resources(firewall_multi, $firewall_multis)
   create_resources(lvm::volume_group, $volume_groups)
 

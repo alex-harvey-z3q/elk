@@ -6,6 +6,8 @@ class profile::redis (
   Integer[0,1] $vm_overcommit_memory,
   Integer $net_core_somaxconn,
 ) {
+  validate_absolute_path($::redispv)
+
   create_resources(firewall_multi, $firewall_multis)
 
   # Our redis has a separate filesystem for its work dir.
