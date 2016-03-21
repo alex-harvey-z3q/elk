@@ -355,13 +355,6 @@ elasticsearch::package_dl_timeout: 0
 profile::elasticsearch::uid: 30010
 profile::elasticsearch::gid: 30010
 
-# see comments on https://www.coredump.id.au/inability-to-create-new-logstash-indexes-in-elasticsearch-2-0/#comments
-profile::elasticsearch::es_templates:
-  logstash:
-    file: 'puppet:///modules/profile/logstash/logstash.json'
-profile::elasticsearch::es_plugins: {}
-profile::elasticsearch::curator_jobs: {}
-
 # profile::elasticsearch::data_node
 
 profile::elasticsearch::data_node::datadir: '/srv/es'
@@ -397,7 +390,14 @@ profile::elasticsearch::data_node::init_defaults:
   ES_HEAP_SIZE: '1g'
   MAX_MAP_COUNT: '262144'
   ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
+profile::elasticsearch::data_node::es_plugins: {}
+profile::elasticsearch::data_node::curator_jobs: {}
 profile::elasticsearch::data_node::vm_swappiness: 0
+
+# see comments on https://www.coredump.id.au/inability-to-create-new-logstash-indexes-in-elasticsearch-2-0/#comments
+profile::elasticsearch::data_node::es_templates:
+  logstash:
+    file: 'puppet:///modules/profile/logstash/logstash.json'
 
 # profile::elasticsearch::client_node
 

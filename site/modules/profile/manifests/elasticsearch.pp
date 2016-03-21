@@ -1,9 +1,6 @@
 class profile::elasticsearch (
   Integer[30000] $uid,
   Integer[30000] $gid,
-  Hash $es_templates,
-  Hash $es_plugins,
-  Hash $curator_jobs,
 ) {
   include profile::jdk
 
@@ -24,12 +21,4 @@ class profile::elasticsearch (
   }
   include elasticsearch
   User['elasticsearch'] -> Package['elasticsearch']
-
-  create_resources(elasticsearch::template, $es_templates)
-  create_resources(elasticsearch::plugin, $es_plugins)
-
-  package { 'elastic-curator':
-    ensure => installed,
-  }
-  create_resources(cron, $curator_jobs)
 }
