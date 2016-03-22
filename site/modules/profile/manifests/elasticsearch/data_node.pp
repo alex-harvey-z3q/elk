@@ -8,6 +8,7 @@ class profile::elasticsearch::data_node (
   Hash $es_plugins,
   Hash $curator_jobs,
   Integer[0,1] $vm_swappiness,
+  Integer $vm_max_map_count,
 ) {
   validate_absolute_path($::espv)
 
@@ -35,6 +36,8 @@ class profile::elasticsearch::data_node (
   create_resources(cron, $curator_jobs)
 
   sysctl { 'vm.swappiness': value => $vm_swappiness }
+  ->
+  sysctl { 'vm.max_map_count': value => $vm_max_map_count }
   ->
   Service["elasticsearch-instance-${cluster_name}"]
 }
