@@ -1,0 +1,2 @@
+redispv=/dev/sdb
+espv=/dev/sdc
