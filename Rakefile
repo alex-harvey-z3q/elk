@@ -16,22 +16,42 @@ PuppetLint::RakeTask.new(:lint) do |config|
   config.ignore_paths = ["tests/**/*.pp", "vendor/**/*.pp","examples/**/*.pp", "spec/**/*.pp", "pkg/**/*.pp"]
 end
 
+def location
+  ENV['LOCATION'] || 'spec/fixtures'
+end
+
 def run(command)
   puts "Running #{command}"
-  status = system(command)
-  return status
+  begin
+    system(command)
+  rescue => e
+    raise "#{command} failed: #{e}"
+  end
 end
 
 desc 'Install puppet modules with librarian-puppet'
 task :librarian_spec_prep do
-  location = ENV['LOCATION'] || 'spec/fixtures'
-  if librarian_puppet_tmp = ENV['LIBRARIAN_PUPPET_TMP']
-    command = "cd #{location} && LIBRARIAN_PUPPET_TMP=#{librarian_puppet_tmp} bundle exec librarian-puppet install"
+  command = "cd #{location} "
+  if ENV['LIBRARIAN_PUPPET_TMP']
+    command += "&& LIBRARIAN_PUPPET_TMP=#{ENV['LIBRARIAN_PUPPET_TMP']} "
   else
-    command = "cd #{location} && bundle exec librarian-puppet install"
+    command += '&& '
   end
-  status = run(command)
-  raise "libarian-puppet install exited non-zero" unless status
+  command += "bundle exec librarian-puppet install #{ENV['LIBRARIAN_VERBOSE']}"
+  run command
+end
+
+desc 'Update puppet modules with librarian-puppet'
+task :librarian_update do
+  system('rm -f spec/fixtures/Puppetfile.lock')
+  command = "cd #{location} "
+  if ENV['LIBRARIAN_PUPPET_TMP']
+    command += "&& LIBRARIAN_PUPPET_TMP=#{ENV['LIBRARIAN_PUPPET_TMP']} "
+  else
+    command += '&& '
+  end
+  command += "bundle exec librarian-puppet update #{ENV['LIBRARIAN_VERBOSE']}"
+  run command
 end
 
 desc "Run spec tests using librarian-puppet to checkout modules"
