@@ -5,7 +5,8 @@ class profile::base::firewall::post () {
     proto      => 'all',
     log_prefix => 'iptables InDrop: ',
     log_level  => 'warn',
-  }->
+  }
+  ->
   firewall { '99999 drop all':
     proto   => 'all',
     action  => 'drop',
