@@ -19,7 +19,7 @@ end
 def copy_modules_to(host, opts = {})
   Dir["#{opts[:source]}/*"].each do |dir|
     if File.symlink?(dir)
-      scp_to host, dir, opts[:module_dir]
+      scp_to host, dir, opts[:module_dir], {:ignore => 'spec/fixtures/modules'}
     else
       scp_to host, dir, opts[:dist_dir]
     end
