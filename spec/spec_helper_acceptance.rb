@@ -1,5 +1,15 @@
 # Environment variables:
 #
+#   ENV['PUPPET_INSTALL_VERSION']
+#     The version of Puppet to install (if 3.x) or the version of the
+#     AIO agent (if 4.x). Defaults to latest Puppet 3.x.
+#
+#   ENV['PUPPET_INSTALL_TYPE']
+#     If set to agent, the Puppet 4 agent is installed, and 
+#     PUPPET_INSTALL_VERSION now specified the agent, rather than the
+#     Puppet, version.  See
+#     [here](https://github.com/puppetlabs/beaker-puppet_install_helper). 
+#
 #   ENV['BEAKER_destroy']
 #     If set to 'no' Beaker will not tear down the Vagrant VM after the
 #     tests run.  Use this if you want the VM to keep running for 
@@ -10,11 +20,7 @@
 
 require 'beaker-rspec/spec_helper'
 require 'beaker-rspec/helpers/serverspec'
-
-def install_puppet_on(host)
-  on host, 'yum -y localinstall http://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm'
-  on host, 'yum -y install puppet-agent'
-end
+require 'beaker/puppet_install_helper'
 
 def copy_modules_to(host, opts = {})
   Dir["#{opts[:source]}/*"].each do |dir|
@@ -36,6 +42,8 @@ def copy_external_facts_to(host, opts = {})
   scp_to host, opts[:source], opts[:target]
 end
 
+run_puppet_install_helper
+
 RSpec.configure do |c|
   # Project root
   proj_root = File.expand_path File.join(File.dirname(__FILE__), '..')
@@ -50,9 +58,6 @@ RSpec.configure do |c|
     if ENV['YUM_UPDATE'] == 'yes'
       on host, 'yum -y update'
     end
-
-    # Set up puppet
-    install_puppet_on host
 
     system 'bundle exec rake librarian_spec_prep'
     system 'bundle exec rake spec_prep'
