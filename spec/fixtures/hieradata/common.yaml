@@ -237,6 +237,12 @@ profile::base::yum::repos:
     gpgcheck: '1'
     gpgkey: 'http://packages.elastic.co/GPG-KEY-elasticsearch'
     enabled: '1'
+  'kibana-4.4':
+    descr: 'Kibana repository for 4.4.x packages'
+    baseurl: 'http://packages.elastic.co/kibana/4.4/centos'
+    gpgcheck: '1'
+    gpgkey: 'http://packages.elastic.co/GPG-KEY-elasticsearch'
+    enabled: '1'
   'nginx-release':
     descr: 'nginx repo'
     baseurl: 'http://nginx.org/packages/centos/7/$basearch/'
@@ -405,15 +411,16 @@ profile::elasticsearch::client_node::init_defaults:
 
 # profile::kibana4
 
-profile::kibana4::firewall_multis: {}
-profile::kibana4::package_download_url: 'https://download.elastic.co/kibana/kibana/kibana-4.3.1-linux-x64.tar.gz'
-profile::kibana4::uid: 30002
-profile::kibana4::gid: 30002
-profile::kibana4::config:
+kibana4::package_use_official_repo: false
+kibana4::config:
   host: '0.0.0.0'
   port: 5601
   elasticsearch_url: 'http://localhost:9201'  # 9201 by default on a single VM because 9200 is taken by the ES data node instance.
   'pid.file': '/var/run/kibana4/kibana4.pid'
+
+profile::kibana4::firewall_multis: {}
+profile::kibana4::uid: 30002
+profile::kibana4::gid: 30002
 
 # profile::nginx
 
