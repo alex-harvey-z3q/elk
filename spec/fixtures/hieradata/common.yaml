@@ -84,7 +84,8 @@ profile::base::yum::repos:
     descr: 'CentOS-$releasever - Base'
     gpgcheck: '1'
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-    mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra'
+    #mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra'
+    baseurl: 'http://mirror.centos.org/centos/$releasever/os/$basearch/'
   'base-debuginfo':
     ensure: 'present'
     baseurl: 'http://debuginfo.centos.org/7/$basearch/'
@@ -114,7 +115,8 @@ profile::base::yum::repos:
     enabled: '0'
     gpgcheck: '1'
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-    mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=centosplus&infra=$infra'
+    #mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=centosplus&infra=$infra'
+    baseurl: 'http://mirror.centos.org/centos/$releasever/centosplus/$basearch/'
   'centosplus-source':
     ensure: 'present'
     baseurl: 'http://vault.centos.org/centos/$releasever/centosplus/Source/'
@@ -136,7 +138,8 @@ profile::base::yum::repos:
     failovermethod: 'priority'
     gpgcheck: '1'
     gpgkey: 'https://getfedora.org/static/352C64E5.txt'
-    mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch'
+    #mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch'
+    baseurl: 'http://download.fedoraproject.org/pub/epel/7/$basearch'
   'epel-debuginfo':
     ensure: 'present'
     descr: 'Extra Packages for Enterprise Linux 7 - $basearch - Debug'
@@ -144,7 +147,8 @@ profile::base::yum::repos:
     failovermethod: 'priority'
     gpgcheck: '1'
     gpgkey: 'https://getfedora.org/static/352C64E5.txt'
-    mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch'
+    #mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch'
+    baseurl: 'http://download.fedoraproject.org/pub/epel/7/$basearch/debug'
   'epel-source':
     ensure: 'present'
     descr: 'Extra Packages for Enterprise Linux 7 - $basearch - Source'
@@ -152,7 +156,8 @@ profile::base::yum::repos:
     failovermethod: 'priority'
     gpgcheck: '1'
     gpgkey: 'https://getfedora.org/static/352C64E5.txt'
-    mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch'
+    #mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch'
+    baseurl: 'http://download.fedoraproject.org/pub/epel/7/SRPMS'
   'epel-testing':
     ensure: 'present'
     descr: 'Extra Packages for Enterprise Linux 7 - Testing - $basearch'
@@ -160,7 +165,8 @@ profile::base::yum::repos:
     failovermethod: 'priority'
     gpgcheck: '1'
     gpgkey: 'https://getfedora.org/static/352C64E5.txt'
-    mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=testing-epel7&arch=$basearch'
+    #mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=testing-epel7&arch=$basearch'
+    baseurl: 'http://download.fedoraproject.org/pub/epel/testing/7/$basearch'
   'epel-testing-debuginfo':
     ensure: 'present'
     descr: 'Extra Packages for Enterprise Linux 7 - Testing - $basearch - Debug'
@@ -168,7 +174,8 @@ profile::base::yum::repos:
     failovermethod: 'priority'
     gpgcheck: '1'
     gpgkey: 'https://getfedora.org/static/352C64E5.txt'
-    mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel7&arch=$basearch'
+    #mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel7&arch=$basearch'
+    baseurl: 'http://download.fedoraproject.org/pub/epel/testing/7/$basearch/debug'
   'epel-testing-source':
     ensure: 'present'
     descr: 'Extra Packages for Enterprise Linux 7 - Testing - $basearch - Source'
@@ -176,13 +183,15 @@ profile::base::yum::repos:
     failovermethod: 'priority'
     gpgcheck: '1'
     gpgkey: 'https://getfedora.org/static/352C64E5.txt'
-    mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel7&arch=$basearch'
+    #mirrorlist: 'https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel7&arch=$basearch'
+    baseurl: 'http://download.fedoraproject.org/pub/epel/testing/7/$basearch/SRPMS'
   'extras':
     ensure: 'present'
     descr: 'CentOS-$releasever - Extras'
     gpgcheck: '1'
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-    mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras&infra=$infra'
+    #mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras&infra=$infra'
+    baseurl: 'http://mirror.centos.org/centos/$releasever/extras/$basearch/'
   'extras-source':
     ensure: 'present'
     baseurl: 'http://vault.centos.org/centos/$releasever/extras/Source/'
@@ -196,7 +205,8 @@ profile::base::yum::repos:
     enabled: '0'
     gpgcheck: '1'
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-    mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=fasttrack&infra=$infra'
+    #mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=fasttrack&infra=$infra'
+    baseurl: 'http://mirror.centos.org/centos/$releasever/fasttrack/$basearch/'
   'puppetlabs-pc1':
     ensure: 'present'
     baseurl: 'http://yum.puppetlabs.com/el/7/PC1/$basearch'
@@ -217,7 +227,8 @@ profile::base::yum::repos:
     descr: 'CentOS-$releasever - Updates'
     gpgcheck: '1'
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-    mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates&infra=$infra'
+    #mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates&infra=$infra'
+    baseurl: 'http://mirror.centos.org/centos/$releasever/updates/$basearch/'
   'updates-source':
     ensure: 'present'
     baseurl: 'http://vault.centos.org/centos/$releasever/updates/Source/'
