@@ -1,14 +1,23 @@
 # Environment variables:
 #
+#   For Puppet 4.x:
+#
 #   ENV['PUPPET_INSTALL_VERSION']
-#     The version of Puppet to install (if 3.x) or the version of the
-#     AIO agent (if 4.x). Defaults to latest Puppet 3.x.
+#     This tracks the puppet-agent version, documented
+#     [here](https://docs.puppet.com/puppet/latest/reference/about_agent.html).
 #
 #   ENV['PUPPET_INSTALL_TYPE']
-#     If set to agent, the Puppet 4 agent is installed, and 
-#     PUPPET_INSTALL_VERSION now specified the agent, rather than the
-#     Puppet, version.  See
-#     [here](https://github.com/puppetlabs/beaker-puppet_install_helper). 
+#     This must be set to 'agent'.
+#
+#   For Puppet 3.x
+#
+#   If no environment variables are set, the latest 3.x Puppet will be used.
+#
+#   ENV['PUPPET_INSTALL_VERSION']
+#     If ENV['PUPPET_INSTALL_TYPE'] is unset, this tracks the specific version
+#     of Puppet 3.x to use.
+#
+#   Other variables:
 #
 #   ENV['BEAKER_destroy']
 #     If set to 'no' Beaker will not tear down the Vagrant VM after the
