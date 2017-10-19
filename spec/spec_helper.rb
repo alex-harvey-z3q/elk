@@ -8,13 +8,13 @@ RSpec.configure do |c|
   c.environmentpath = File.join(Dir.pwd, 'spec')
   c.default_facts   = {
     :concat_basedir            => '/var/lib/puppet/concat',
+    :espv                      => '/dev/sdc',
     :kernel                    => 'Linux',
-    :osfamily                  => 'RedHat',
     :operatingsystem           => 'RedHat',
-    :operatingsystemrelease    => '7.2.1511',
     :operatingsystemmajrelease => '7',
+    :operatingsystemrelease    => '7.2.1511',
+    :osfamily                  => 'RedHat',
     :path                      => ['/bin', '/usr/bin'],
     :redispv                   => '/dev/sdb',
-    :espv                      => '/dev/sdc',
   }
 end
