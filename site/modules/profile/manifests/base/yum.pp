@@ -1,9 +1,6 @@
 class profile::base::yum (
   Hash $repos,
 ) {
-  Yumrepo {
-    stage => 'pre',
-  }
   create_resources(yumrepo, $repos)
 
   # Since we must purge the file resources in
