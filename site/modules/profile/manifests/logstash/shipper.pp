@@ -32,7 +32,7 @@ class profile::logstash::shipper (
     owner   => 'logstash',
     group   => 'logstash',
     mode    => '0755',
-    require => Class[Logstash],
+    require => Class['logstash'],
   }
 
   file { '/etc/sysconfig/logstash-shipper':
