@@ -17,7 +17,7 @@ Install the necessary gems:
 
 To run the tests from the root of the source code:
 
-    bundle exec rake spec
+    bundle exec rake librarian_spec
 
 To run the acceptance tests:
 
