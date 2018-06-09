@@ -6,20 +6,11 @@ mod 'puppetlabs/lvm'
 mod 'puppetlabs/firewall'
 mod 'alexharvey/firewall_multi'
 mod 'alexharvey/disable_transparent_hugepage'
-mod 'pcfens/filebeat',
-  :git => 'https://github.com/pcfens/puppet-filebeat.git'
-mod 'elasticsearch/elasticsearch',
-  :git => 'https://github.com/elastic/puppet-elasticsearch.git'
-mod 'elasticsearch/logstash',
-  :git => 'https://github.com/elastic/puppet-logstash.git'
-mod 'arioch/redis',
-  :git => 'https://github.com/arioch/puppet-redis.git'
-mod 'lesaux/kibana4',
-  :git => 'https://github.com/lesaux/puppet-kibana4.git',
-  :ref => '43a6e5dca4778695364d01f86ca1948b7eae7575'
-mod 'jfryman/nginx',
-  :git => 'https://github.com/jfryman/puppet-nginx.git'
-mod 'camptocamp/archive',
-  :git => 'https://github.com/camptocamp/puppet-archive.git'
-mod 'thias/sysctl',
-  :git => 'https://github.com/thias/puppet-sysctl.git'
+mod 'pcfens/filebeat'
+mod 'elastic/elasticsearch'
+mod 'elastic/logstash'
+mod 'arioch/redis'
+mod 'elastic/kibana'
+mod 'puppet/nginx'
+mod 'camptocamp/archive'
+mod 'thias/sysctl'
