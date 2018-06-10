@@ -37,13 +37,17 @@ class profile::redis (
   # Redis module does not do this.
 
   create_resources(lvm::volume_group, $volume_groups)
-  file { $workdir:
-    ensure => directory,
-    owner  => 'redis',
-    group  => 'redis',
-    mode   => '0755',
-  }
-  Mount[$workdir] -> File[$workdir]
+
+# TODO: Redis now apparently does manage the workdir. Must find
+# out what the other implications are of the change.
+#
+#  file { $workdir:
+#    ensure => directory,
+#    owner  => 'redis',
+#    group  => 'redis',
+#    mode   => '0755',
+#  }
+#  Mount[$workdir] -> File[$workdir]
 
   include disable_transparent_hugepage
   Service['disable-transparent-hugepage']

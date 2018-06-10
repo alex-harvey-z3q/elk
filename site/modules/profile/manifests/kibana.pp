@@ -1,4 +1,4 @@
-class profile::kibana4 (
+class profile::kibana (
   Hash $firewall_multis,
   Integer[30000] $uid,
   Integer[30000] $gid,
@@ -24,5 +24,5 @@ class profile::kibana4 (
   }
 
   include profile::jdk
-  include kibana4
+  include kibana
 }

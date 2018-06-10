@@ -5,7 +5,7 @@ class role::elk_stack {
   include profile::logstash::indexer
   include profile::elasticsearch::data_node
   include profile::elasticsearch::client_node
-  include profile::kibana4
+  include profile::kibana
   include profile::nginx
 
   # In a single node configuration with ES master and client instances, the
@@ -46,7 +46,7 @@ class role::elk_stack {
   ~>
   Exec['wait-for-es-client']
   ->
-  Service['kibana4']
+  Service['kibana']
   ~>
   Exec['wait-for-kibana']
   ->
