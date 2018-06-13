@@ -3,7 +3,9 @@ require 'puppetlabs_spec_helper/module_spec_helper'
 RSpec.configure do |c|
   c.color        = true
   c.hiera_config = 'spec/fixtures/hiera.yaml'
-  c.formatter    = :documentation
+
+  c.formatter      = :documentation
+  c.mock_framework = :rspec
 
   c.default_facts   = {
     :concat_basedir  => '/var/lib/puppet/concat',
