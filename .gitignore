@@ -4,8 +4,10 @@ Gemfile.lock
 .vagrant/
 pkg/
 log/
+spec/fixtures/manifests
 spec/fixtures/modules
 spec/fixtures/.librarian
 spec/fixtures/.tmp
 spec/fixtures/Puppetfile.lock
 .bundle
+catalogs
