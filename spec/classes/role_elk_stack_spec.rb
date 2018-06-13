@@ -25,6 +25,9 @@ describe 'role::elk_stack' do
     end
 
     allow(Puppet::FileServing::Content.indirection).to receive(:find).
+      and_call_original
+
+    allow(Puppet::FileServing::Content.indirection).to receive(:find).
       with(
         'puppet:///modules/profile/logstash/logstash.json',
         hash_including(environment: instance_of(Puppet::Node::Environment))
