@@ -1,21 +1,18 @@
 # Environment variables:
 #
-#   For Puppet 4.x:
+#   Usage:
 #
-#   ENV['PUPPET_INSTALL_VERSION']
-#     This tracks the puppet-agent version, documented
-#     [here](https://docs.puppet.com/puppet/latest/reference/about_agent.html).
+#   BEAKER_PUPPET_INSTALL_VERSION=5.5.1 bundle exec rspec spec/acceptance
 #
-#   ENV['PUPPET_INSTALL_TYPE']
-#     This must be set to 'agent'.
+#   For Puppet 4.x/5.x:
+#
+#   ENV['BEAKER_PUPPET_AGENT_VERSION']
+#     This tracks the puppet-agent version, documented here:
+#       https://docs.puppet.com/puppet/latest/reference/about_agent.html
 #
 #   For Puppet 3.x
 #
-#   If no environment variables are set, the latest 3.x Puppet will be used.
-#
-#   ENV['PUPPET_INSTALL_VERSION']
-#     If ENV['PUPPET_INSTALL_TYPE'] is unset, this tracks the specific version
-#     of Puppet 3.x to use.
+#   TODO. Not tested. Try PUPPET_INSTALL_TYPE=foss based on docs.
 #
 #   Other variables:
 #

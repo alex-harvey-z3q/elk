@@ -11,6 +11,7 @@ gem 'pry-stack_explorer'
 gem 'simplecov'
 gem 'beaker'
 gem 'beaker-rspec'
+gem 'beaker-puppet_install_helper'
 gem 'librarian-puppet'
 
 if facterversion = ENV['FACTER_GEM_VERSION']
