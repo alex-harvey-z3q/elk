@@ -10,7 +10,7 @@ class profile::elasticsearch::data_node (
   Integer[0,1] $vm_swappiness,
   Integer $vm_max_map_count,
 ) {
-  validate_absolute_path($facts['espv'])
+  assert_type(Stdlib::Absolutepath, $facts['espv'])
 
   create_resources(firewall_multi, $firewall_multis)
   create_resources(lvm::volume_group, $volume_groups)
