@@ -389,7 +389,6 @@ profile::elasticsearch::data_node::volume_groups:
 profile::elasticsearch::data_node::config:
   'cluster.name': 'es01'
   'node.name': "es01_%{::hostname}"
-  'http.enabled': true
   'node.master': true
   'node.data': true
   'index.number_of_replicas': 0
