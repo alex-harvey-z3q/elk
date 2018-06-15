@@ -7,6 +7,7 @@ class profile::elasticsearch::data_node (
   Hash $es_templates,
   Hash $es_plugins,
   Hash $curator_jobs,
+  Array $jvm_options,
   Integer[0,1] $vm_swappiness,
   Integer $vm_max_map_count,
 ) {
@@ -21,9 +22,10 @@ class profile::elasticsearch::data_node (
   $cluster_name = $config['cluster.name']
 
   elasticsearch::instance { $cluster_name:
-    init_defaults => $init_defaults,
     config        => $config,
     datadir       => $datadir,
+    init_defaults => $init_defaults,
+    jvm_options   => $jvm_options,
   }
   Mount[$datadir] -> File[$datadir]
 
