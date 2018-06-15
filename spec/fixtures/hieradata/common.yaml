@@ -391,7 +391,6 @@ profile::elasticsearch::data_node::config:
   'node.name': "es01_%{::hostname}"
   'node.master': true
   'node.data': true
-  'index.number_of_replicas': 0
 profile::elasticsearch::data_node::init_defaults:
   JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64'
   ES_HEAP_SIZE: '1g'
