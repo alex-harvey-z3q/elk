@@ -31,7 +31,8 @@ require 'beaker/puppet_install_helper'
 def copy_modules_to(host, opts = {})
   Dir["#{opts[:source]}/*"].each do |dir|
     if File.symlink?(dir)
-      scp_to host, dir, opts[:module_dir], {:ignore => 'spec/fixtures/modules'}
+      scp_to host, dir, opts[:module_dir],
+        {:ignore => 'spec/fixtures/modules'}
     else
       scp_to host, dir, opts[:dist_dir]
     end
@@ -44,20 +45,20 @@ def copy_hiera_files_to(host, opts = {})
 end
 
 def copy_external_facts_to(host, opts = {})
-  on host, 'mkdir -p ' + opts[:target]
+  on host, "mkdir -p #{opts[:target]}"
   scp_to host, opts[:source], opts[:target]
 end
 
 run_puppet_install_helper
 
 RSpec.configure do |c|
-  # Project root
-  proj_root = File.expand_path File.join(File.dirname(__FILE__), '..')
+  proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
-  # Readable test descriptions
   c.formatter = :documentation
 
   # Configure all nodes in nodeset
+  # See spec/acceptance/nodesets/default.yml
+  #
   c.before :suite do
     host = hosts[0]
 
@@ -69,19 +70,19 @@ RSpec.configure do |c|
     system 'bundle exec rake spec_prep'
 
     copy_modules_to(host, {
-      :source     => proj_root + '/spec/fixtures/modules',
+      :source     => "#{proj_root}/spec/fixtures/modules",
       :dist_dir   => '/etc/puppetlabs/code/modules',
       :module_dir => '/etc/puppetlabs/code/environments/production/modules'
     })
 
     copy_hiera_files_to(host, {
-      :hieradata  => proj_root + '/spec/fixtures/hieradata',
-      :hiera_yaml => proj_root + '/spec/fixtures/hiera.yaml.beaker',
+      :hieradata  => "#{proj_root}/spec/fixtures/hieradata",
+      :hiera_yaml => "#{proj_root}/spec/fixtures/hiera.yaml.beaker",
       :target     => '/etc/puppetlabs/code',
     })
 
     copy_external_facts_to(host, {
-      :source => proj_root + '/spec/fixtures/facts.d',
+      :source => "#{proj_root}/spec/fixtures/facts.d",
       :target => '/etc/facter',
     })
 

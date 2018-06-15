@@ -19,7 +19,7 @@ Make sure you have:
 
 Configure Squid Man to listen on port 3128 and cache all.
 
-### Run the acceptance tests
+### Run the tests
 
 Install the necessary gems:
 
