@@ -37,8 +37,26 @@ To run the acceptance tests:
 
 ~~~ text
 export BEAKER_PACKAGE_PROXY=http://<laptop_ip>:3128/
-export BEAKER_PUPPET_INSTALL_VERSION=<puppet_version>
+~~~
+
+Puppet 5.5.1:
+
+~~~ text
+export BEAKER_PUPPET_COLLECTION=puppet5
+export BEAKER_PUPPET_INSTALL_VERSION=5.5.1
+~~~
+
+Puppet 4.10.11:
+
+~~~ text
+export BEAKER_PUPPET_COLLECTION=pc1
+export BEAKER_PUPPET_INSTALL_VERSION=1.10.12
+~~~
+
+Then:
+
+~~~ text
 bundle exec rspec spec/acceptance
 ~~~
 
-Tested using Puppet 5.5.1 and Ruby 2.4.1.
+Tested using Puppet 4.10.11, 5.5.1 and Ruby 2.4.1.
