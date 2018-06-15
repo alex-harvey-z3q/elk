@@ -6,7 +6,7 @@ class profile::redis (
   Integer[0,1] $vm_overcommit_memory,
   Integer $net_core_somaxconn,
 ) {
-  validate_absolute_path($::redispv)
+  validate_absolute_path($facts['redispv'])
 
   create_resources(firewall_multi, $firewall_multis)
 

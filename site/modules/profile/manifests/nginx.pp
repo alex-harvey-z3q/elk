@@ -25,7 +25,7 @@ class profile::nginx (
   }
 
   include nginx
-  nginx::resource::server { $::fqdn:
+  nginx::resource::server { $facts['fqdn']:
     proxy => "http://$backend_host:$backend_port",
   }
   User['nginx'] -> Package['nginx']
