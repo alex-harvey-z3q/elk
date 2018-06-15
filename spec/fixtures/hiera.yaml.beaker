@@ -1,7 +1,8 @@
 ---
-:backends:
-  - yaml
-:hierarchy:
-  - common
-:yaml:
-  :datadir: '/etc/puppetlabs/code/hieradata'
+version: 5
+hierarchy:
+  - name: Yaml backend
+    data_hash: yaml_data
+    paths:
+      - 'common.yaml'
+    datadir: /etc/puppetlabs/code/hieradata
