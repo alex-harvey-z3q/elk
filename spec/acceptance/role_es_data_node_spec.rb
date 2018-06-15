@@ -27,9 +27,9 @@ describe 'role::es_data_node' do
     [
      ['java-1.8.0-openjdk',          '1.8.0'],
      ['java-1.8.0-openjdk-headless', '1.8.0'],
-     ['elasticsearch',               '2.3.1'],
+     ['elasticsearch',               '6.3.0'],
      ['elastic-curator',             '3.2.3'],
-     ['python-elasticsearch',        '1.0.0'],
+     ['python-elasticsearch',        '1.9.0'],
 
     ].each do |package, version|
 
