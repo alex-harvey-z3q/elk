@@ -1,48 +1,51 @@
 {
-  "template": "logstash-*",
-  "settings": {
-    "index.refresh_interval": "5s"
-  },
+  "aliases": {},
+  "index_patterns": [
+    "logstash-*"
+  ],
   "mappings": {
     "_default_": {
-      "_all": {
-        "enabled": true
-      },
       "dynamic_templates": [
         {
           "string_fields": {
-            "match": "*",
-            "match_mapping_type": "string",
             "mapping": {
-              "type": "string",
-              "index": "analyzed",
-              "omit_norms": true,
               "fields": {
                 "raw": {
-                  "type": "string",
+                  "ignore_above": "256",
                   "index": "not_analyzed",
-                  "ignore_above": 256
+                  "type": "text"
                 }
-              }
-            }
+              },
+              "index": "analyzed",
+              "omit_norms": "true",
+              "type": "text"
+            },
+            "match": "*",
+            "match_mapping_type": "string"
           }
         }
       ],
       "properties": {
         "@version": {
-          "type": "string",
-          "index": "not_analyzed"
+          "index": "false",
+          "type": "text"
         },
         "geoip": {
-          "type": "object",
-          "dynamic": true,
+          "dynamic": "true",
           "properties": {
             "location": {
               "type": "geo_point"
             }
-          }
+          },
+          "type": "object"
         }
       }
+    }
+  },
+  "order": "0",
+  "settings": {
+    "index": {
+      "refresh_interval": "5s"
     }
   }
 }
