@@ -207,21 +207,6 @@ profile::base::yum::repos:
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
     #mirrorlist: 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=fasttrack&infra=$infra'
     baseurl: 'http://mirror.centos.org/centos/$releasever/fasttrack/$basearch/'
-  'puppetlabs-pc1':
-    ensure: 'present'
-    baseurl: 'http://yum.puppetlabs.com/el/7/PC1/$basearch'
-    descr: 'Puppet Labs PC1 Repository el 7 - $basearch'
-    enabled: '1'
-    gpgcheck: '1'
-    gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs-PC1'
-  'puppetlabs-pc1-source':
-    ensure: 'present'
-    baseurl: 'http://yum.puppetlabs.com/el/7/PC1/SRPMS'
-    descr: 'Puppet Labs PC1 Repository el 7 - Source'
-    enabled: '0'
-    failovermethod: 'priority'
-    gpgcheck: '1'
-    gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs-PC1'
   'updates':
     ensure: 'present'
     descr: 'CentOS-$releasever - Updates'
@@ -236,29 +221,17 @@ profile::base::yum::repos:
     enabled: '0'
     gpgcheck: '1'
     gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-  'logstash-1.4':
-    descr: 'Logstash repository for 1.4.x packages'
-    baseurl: 'http://packages.elasticsearch.org/logstash/1.4/centos'
-    gpgcheck: '1'
-    gpgkey: 'http://packages.elastic.co/GPG-KEY-elasticsearch'
-    enabled: '1'
-  'elasticsearch-2.x':
-    descr: 'Elasticsearch repository for 2.x.x packages'
-    baseurl: 'http://packages.elasticsearch.org/elasticsearch/2.x/centos'
-    gpgcheck: '1'
-    gpgkey: 'http://packages.elastic.co/GPG-KEY-elasticsearch'
-    enabled: '1'
-  'kibana-4.4':
-    descr: 'Kibana repository for 4.4.x packages'
-    baseurl: 'http://packages.elastic.co/kibana/4.4/centos'
-    gpgcheck: '1'
-    gpgkey: 'http://packages.elastic.co/GPG-KEY-elasticsearch'
-    enabled: '1'
   'nginx-release':
     descr: 'nginx repo'
     baseurl: 'http://nginx.org/packages/centos/7/$basearch/'
     gpgcheck: '1'
     gpgkey: 'http://nginx.org/keys/nginx_signing.key'
+    enabled: '1'
+  'elasticsearch-6.x':
+    descr: 'elasticsearch repo'
+    baseurl: 'https://artifacts.elastic.co/packages/6.x/yum'
+    gpgcheck: '1'
+    gpgkey: 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
     enabled: '1'
 
 # profile::base
@@ -365,6 +338,8 @@ profile::redis::vm_overcommit_memory: 1
 profile::redis::net_core_somaxconn: 1024
 
 # profile::elasticsearch
+
+elasticsearch::manage_repo: false
 
 profile::elasticsearch::uid: 30000
 profile::elasticsearch::gid: 30000
