@@ -20,6 +20,10 @@ describe 'role::es_data_node' do
       # test for idempotence
       expect(apply_manifest(pp, :catch_failures => true).exit_code).to be_zero
     end
+
+    it 'wait 2 minutes for ES cluster to start' do
+      expect(sleep 120).to be 120
+    end
   end
 
   context 'packages' do
@@ -61,12 +65,23 @@ describe 'role::es_data_node' do
 
   context 'log files' do
     describe file('/var/log/elasticsearch/es01/es01.log') do
+      its(:content) { is_expected.to match /initializing .../ }
+      its(:content) { is_expected.to match /using.*data paths, mounts/ }
+      its(:content) { is_expected.to match /heap size/ }
+      its(:content) { is_expected.to match /node name.*node ID/ }
+      its(:content) { is_expected.to match /JVM arguments/ }
+      its(:content) { is_expected.to match /loaded module/ }
+      its(:content) { is_expected.to match /no plugins loaded/ }
+      its(:content) { is_expected.to match /using discovery type.*zen/ }
+      its(:content) { is_expected.to match /initialized/ }
       its(:content) { is_expected.to match /starting .../ }
       its(:content) { is_expected.to match /publish_address.*127.0.0.1:9300/ }
-      its(:content) { is_expected.to match /es01/ }
-      its(:content) { is_expected.to match /new_master.*reason:.*elected_as_master/ }
+      its(:content) { is_expected.to match /zen-disco-elected-as-master.*reason: new_master/ }
       its(:content) { is_expected.to match /publish_address.*127.0.0.1:9200/ }
       its(:content) { is_expected.to match /started/ }
+      its(:content) { is_expected.to match /WARN.*Failed to clear cache for realms/ } # What is this?
+      its(:content) { is_expected.to match /adding template/ }
+      its(:content) { is_expected.to match /license.*mode.*basic.*valid/ }
     end
 
     describe file('/var/log/elasticsearch/es01/es01_index_search_slowlog.log') do
@@ -120,11 +135,11 @@ describe 'role::es_data_node' do
   end
 
   context 'commands' do
-    describe command('curl localhost:9200') do
+    describe command('curl 0.0.0.0:9200') do
       its(:stdout) { is_expected.to match /cluster_name.*es01/ }
     end
 
-    describe command('curl localhost:9200/_cluster/health?pretty') do
+    describe command('curl 0.0.0.0:9200/_cluster/health?pretty') do
       its(:stdout) { is_expected.to match /green/ }
     end
   end
