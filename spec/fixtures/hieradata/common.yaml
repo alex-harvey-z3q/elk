@@ -369,7 +369,7 @@ profile::elasticsearch::data_node::config:
   'node.master': true
   'node.data': true
 profile::elasticsearch::data_node::init_defaults:
-  JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64'
+  JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64'
 profile::elasticsearch::data_node::es_plugins: {}
 profile::elasticsearch::data_node::curator_jobs: {}
 profile::elasticsearch::data_node::jvm_options:

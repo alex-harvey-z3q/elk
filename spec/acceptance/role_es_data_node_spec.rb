@@ -41,6 +41,12 @@ describe 'role::es_data_node' do
 
   end
 
+  context 'directories' do
+    describe file('/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64') do
+      it { should be_directory }
+    end
+  end
+
   context 'config files' do
     describe file('/usr/lib/tmpfiles.d/elasticsearch.conf') do
       its(:content) { is_expected.to match /elasticsearch/ }
