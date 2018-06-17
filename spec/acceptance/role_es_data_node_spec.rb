@@ -20,10 +20,6 @@ describe 'role::es_data_node' do
       # test for idempotence
       expect(apply_manifest(pp, :catch_failures => true).exit_code).to be_zero
     end
-
-    it 'wait 2 minutes for ES cluster to start' do
-      expect(sleep 120).to be 120
-    end
   end
 
   context 'packages' do

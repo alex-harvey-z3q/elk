@@ -339,6 +339,8 @@ profile::redis::net_core_somaxconn: 1024
 
 # profile::elasticsearch
 
+elasticsearch::api_host: '0.0.0.0'
+elasticsearch::api_timeout: 120
 elasticsearch::manage_repo: false
 
 profile::elasticsearch::uid: 30000
