@@ -105,7 +105,9 @@ RSpec.configure do |c|
     })
 
     # https://tickets.puppetlabs.com/browse/MODULES-3153
+    # https://tickets.puppetlabs.com/browse/MODULES-3184
     on host, 'yum -y install iptables-services'
     on host, 'systemctl start iptables.service'
+    on host, 'systemctl start ip6tables.service'
   end
 end
