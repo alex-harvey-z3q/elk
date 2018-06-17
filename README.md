@@ -36,7 +36,8 @@ bundle exec rake librarian_spec
 To run the acceptance tests:
 
 ~~~ text
-export BEAKER_PACKAGE_PROXY=http://<laptop_ip>:3128/
+ipaddr=$(ifconfig en0 | awk '/inet/ {print $2}')
+export BEAKER_PACKAGE_PROXY=http://${ipaddr}:3128/
 ~~~
 
 Puppet 5.5.1:
