@@ -4,6 +4,102 @@
 
 This is still a work-in-progress, but might serve as a useful introduction to the design of an ELK roles and profiles solution in Puppet.
 
+## Elasticsearch
+
+### elasticsearch class
+
+The elasticsearch class is declared as:
+
+~~~ puppet
+class { 'elasticsearch':
+  api_host    => '0.0.0.0',
+  api_timeout => 120,
+  manage_repo => false,
+}
+~~~
+
+This is global for both a data and client node.
+
+### data node
+
+#### elasticsearch::instance class
+
+On a data node, the elasticsearch::instance class is declared as:
+
+~~~ puppet
+elasticsearch::instance { 'es01':
+  datadir       => '/srv/es',
+  config        => {
+    'cluster.name' => 'es01',
+    'node.name'    => "es01_${facts['hostname']}",
+    'node.master'  => true,
+    'node.data'    => true,
+  },
+  init_defaults => {
+    JAVA_HOME => '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64',
+  },
+  jvm_options   => ['-Xms1g', '-Xmx1g' ],
+}
+~~~
+
+#### elasticsearch template
+
+We use the following index template:
+
+~~~ json
+{
+  "aliases": {},
+  "index_patterns": [
+    "logstash-*"
+  ],
+  "mappings": {
+    "_default_": {
+      "dynamic_templates": [
+        {
+          "string_fields": {
+            "mapping": {
+              "fields": {
+                "raw": {
+                  "ignore_above": "256",
+                  "index": "not_analyzed",
+                  "type": "text"
+                }
+              },
+              "index": "analyzed",
+              "omit_norms": "true",
+              "type": "text"
+            },
+            "match": "*",
+            "match_mapping_type": "string"
+          }
+        }
+      ],
+      "properties": {
+        "@version": {
+          "index": "false",
+          "type": "text"
+        },
+        "geoip": {
+          "dynamic": "true",
+          "properties": {
+            "location": {
+              "type": "geo_point"
+            }
+          },
+          "type": "object"
+        }
+      }
+    }
+  },
+  "order": "0",
+  "settings": {
+    "index": {
+      "refresh_interval": "5s"
+    }
+  }
+}
+~~~
+
 ## Testing
 
 ### Dependencies
