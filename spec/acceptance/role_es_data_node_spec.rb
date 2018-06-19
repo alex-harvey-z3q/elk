@@ -144,5 +144,10 @@ describe 'role::es_data_node' do
     describe command('curl 0.0.0.0:9200/_cluster/health?pretty') do
       its(:stdout) { is_expected.to match /green/ }
     end
+
+    it 'add some data' do
+      shell('curl -XPUT 0.0.0.0:9200/blog/user/dilbert -H'"'Content-Type: application/json' -d '{"'"name":"dilbert"}'"' ; sleep 5")
+      expect(command("curl '0.0.0.0:9200/blog/user/_search?q=name:Dilbert&pretty'").stdout).to match /_id.*dilbert/
+    end
   end
 end
