@@ -1,29 +1,28 @@
 source 'https://rubygems.org'
 
-gem 'rake', '~> 10.1.0'
-gem 'rspec-puppet'
-gem 'puppetlabs_spec_helper'
-gem 'serverspec'
-gem 'puppet-lint'
-gem 'pry'
-gem 'pry-rescue'
-gem 'pry-stack_explorer'
-gem 'simplecov'
-gem 'beaker'
-gem 'beaker-rspec'
-gem 'beaker-puppet_install_helper'
-gem 'librarian-puppet'
-
-if facterversion = ENV['FACTER_GEM_VERSION']
-  gem 'facter', facterversion
-else
-  gem 'facter'
+group :development do
+  gem 'pry'
+  gem 'pry-rescue'
+  gem 'pry-stack_explorer'
+  gem 'hashdiff'
+  gem 'awesome_print'
 end
+
+group :tests do
+  gem 'puppetlabs_spec_helper'
+  gem 'librarian-puppet'
+end
+
+group :system_tests do
+  gem 'beaker'
+  gem 'beaker-rspec'
+  gem 'beaker-puppet_install_helper'
+end
+
+gem 'facter'
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
   gem 'puppet', puppetversion
 else
   gem 'puppet'
 end
-
-# vim:ft=ruby
