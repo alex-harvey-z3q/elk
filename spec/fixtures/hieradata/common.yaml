@@ -233,6 +233,12 @@ profile::base::yum::repos:
     gpgcheck: '1'
     gpgkey: 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
     enabled: '1'
+  'logstash-6.x':
+    descr: 'Elastic repository for 6.x packages'
+    baseurl: 'https://artifacts.elastic.co/packages/6.x/yum'
+    gpgcheck: '1'
+    gpgkey: 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
+    enabled: '1'
 
 # profile::base
 
@@ -250,15 +256,8 @@ profile::jdk::package: 'java-1.8.0-openjdk'
 
 # profile::logstash
 
-logstash::install_contrib: true
-logstash::status: 'disabled'
-
-# profile::logstash::user
-
-profile::logstash::user::uid: 30001
-profile::logstash::user::gid: 30001
-
-# profile::logstash::shipper
+profile::logstash::uid: 30001
+profile::logstash::gid: 30001
 
 # NOTE: concerning the heap sizes:
 # test VM has 8G so:
@@ -268,26 +267,16 @@ profile::logstash::user::gid: 30001
 # 1g for ES heap
 # leaving ~ 4G for OS.
 
-profile::logstash::shipper::firewall_multis:
-  '00100 accept tcp port 6782 for logstash forwarder':
-    dport: '6782'
+# FIXME. None of this makes sense if this common.yaml is for
+# the single-instance.
+#
+profile::logstash::firewall_multis:
+  '00100 accept tcp port 5044 for file beats':
+    dport: '5044'
     action: 'accept'
     proto: 'tcp'
     source:
       - '0.0.0.0/0'
-profile::logstash::shipper::sysconfig: |
-  JAVACMD=/usr/bin/java
-  LS_HEAP_SIZE='1g'
-  LS_JAVA_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/logstash/gc-shipper.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"
-profile::logstash::shipper::configfiles:
-  '/etc/logstash/logstash-shipper/conf.d/10_input_lumberjack':
-    source: 'puppet:///modules/profile/logstash/conf.d/input_lumberjack'
-  '/etc/logstash/logstash-shipper/conf.d/91_output_redis':
-    source: 'puppet:///modules/profile/logstash/conf.d/output_redis'
-
-# profile::logstash::indexer
-
-profile::logstash::indexer::firewall_multis:
   '00100 accept tcp ports 9300-9400 for logstash indexer':
     dport: '9300-9400'
     action: 'accept'
@@ -307,15 +296,25 @@ profile::logstash::indexer::firewall_multis:
     source:
       - '0.0.0.0/0'
 
-profile::logstash::indexer::sysconfig: |
-  JAVACMD=/usr/bin/java
-  LS_HEAP_SIZE='1g'
-  LS_JAVA_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/logstash/gc-indexer.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"
-profile::logstash::indexer::configfiles:
-  '/etc/logstash/logstash-indexer/conf.d/10_input_redis':
-    source: 'puppet:///modules/profile/logstash/conf.d/input_redis'
-  '/etc/logstash/logstash-indexer/conf.d/90_output_es':
-    source: 'puppet:///modules/profile/logstash/conf.d/output_es.ci'
+profile::logstash::manage_repo: false
+profile::logstash::jvm_options:
+  - '-Xms1g'
+  - '-Xmx1g'
+
+profile::logstash::configfiles:
+  'shipper.conf':
+    source: 'puppet:///modules/profile/logstash/conf.d/shipper.conf'
+    path: '/etc/logstash/conf.d/shipper.conf'
+  'indexer.conf':
+    source: 'puppet:///modules/profile/logstash/conf.d/indexer.conf'
+    path: '/etc/logstash/conf.d/indexer.conf'
+
+profile::logstash::patternfiles: {}
+profile::logstash::pipelines:
+  - 'pipeline.id': 'shipper'
+    'path.config': '/etc/logstash/conf.d/shipper.conf'
+  - 'pipeline.id': 'indexer'
+    'path.config': '/etc/logstash/conf.d/indexer.conf'
 
 # profile::redis
 
@@ -339,6 +338,8 @@ profile::redis::net_core_somaxconn: 1024
 
 # profile::elasticsearch
 
+# FIXME. For consistency, these should be parameters to the profile.
+#
 elasticsearch::api_host: '0.0.0.0'
 elasticsearch::api_timeout: 120
 elasticsearch::manage_repo: false
