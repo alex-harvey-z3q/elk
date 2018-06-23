@@ -23,6 +23,13 @@ class role::elk_stack {
   ~>
   Wait_for['logstash']
 
+  # The disable_transparent_hugepage module, included by the Redis profile,
+  # runs a script that resets the value of vm.swappiness, breaking idempotence.
+  #
+  Exec['enable-tuned-profile']
+  ->
+  Sysctl['vm.swappiness']
+
   # In a single node configuration with ES master and client instances, the
   # first to start will take port 9000.  Similarly, Kibana4 isn't happy unless
   # the ES cluster has started first.  Each ES instances takes less than 10
