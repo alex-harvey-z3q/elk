@@ -7,20 +7,31 @@ class role::elk_stack {
   include profile::redis
   include profile::logstash
 
+  # I am not at this point sure why, but it seems that the Logstash service can
+  # take quite a while to start. To avoid Beaker tests failing due to a
+  # slow-starting Logstash service, this wait_for pauses the Puppet run until
+  # the Logstash service actually started.
+  #
+  wait_for { 'logstash':
+    query             => 'cat /var/log/logstash/logstash-plain.log 2> /dev/null',
+    regex             => 'Successfully started Logstash API endpoint',
+    polling_frequency => 5,  # Wait up to 2 minutes.
+    max_retries       => 24,
+  }
+
+  Service['logstash']
+  ~>
+  Wait_for['logstash']
+
   # In a single node configuration with ES master and client instances, the
   # first to start will take port 9000.  Similarly, Kibana4 isn't happy unless
   # the ES cluster has started first.  Each ES instances takes less than 10
   # seconds to start.
 
-  exec { [
-    'wait-for-es-master',
-    'wait-for-es-client',
-    'wait-for-kibana',
-  ]:
-    path        => '/bin',
-    command     => 'sleep 15',
-    refreshonly => true,
-  }
+#  wait_for { ['es-master', 'es-client',
+#    #    'wait-for-kibana',
+#  ]:
+#  }
 
   # We also need to manually set number_of_replicas to 0 if running Kibana 4 on
   # a single-node ES cluster.  As before, we need to wait 10 seconds for Kibana
