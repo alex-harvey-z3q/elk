@@ -228,7 +228,7 @@ describe 'role::elk_stack' do
       end
 
       describe linux_kernel_parameter('vm.swappiness') do
-        its(:value) { is_expected.to eq 0 }
+        its(:value) { is_expected.to eq 1 }
       end
 
     end

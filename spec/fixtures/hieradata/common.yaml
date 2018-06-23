@@ -374,7 +374,7 @@ profile::elasticsearch::data_node::curator_jobs: {}
 profile::elasticsearch::data_node::jvm_options:
   - '-Xms1g'
   - '-Xmx1g'
-profile::elasticsearch::data_node::vm_swappiness: 0
+profile::elasticsearch::data_node::vm_swappiness: 1
 profile::elasticsearch::data_node::vm_max_map_count: 262144
 
 # see comments on https://www.coredump.id.au/inability-to-create-new-logstash-indexes-in-elasticsearch-2-0/#comments
