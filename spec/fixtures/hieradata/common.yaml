@@ -318,8 +318,6 @@ profile::logstash::pipelines:
 
 # profile::redis
 
-disable_transparent_hugepage::service_provider: 'redhat'
-
 redis::workdir: '/var/lib/redis'
 redis::maxmemory: '16gb'
 
