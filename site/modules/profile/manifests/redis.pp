@@ -47,7 +47,8 @@ class profile::redis (
 #    group  => 'redis',
 #    mode   => '0755',
 #  }
-#  Mount[$workdir] -> File[$workdir]
+
+  Mount[$workdir] -> File[$workdir]
 
   include disable_transparent_hugepage
   Service['disable-transparent-hugepage']
