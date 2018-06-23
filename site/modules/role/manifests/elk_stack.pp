@@ -1,12 +1,11 @@
 class role::elk_stack {
   include profile::base
-  include profile::logstash::shipper
-  include profile::redis
-  include profile::logstash::indexer
   include profile::elasticsearch::data_node
-  include profile::elasticsearch::client_node
-  include profile::kibana
-  include profile::nginx
+#  include profile::elasticsearch::client_node
+#  include profile::kibana
+#  include profile::nginx
+  include profile::redis
+  include profile::logstash
 
   # In a single node configuration with ES master and client instances, the
   # first to start will take port 9000.  Similarly, Kibana4 isn't happy unless
@@ -29,26 +28,26 @@ class role::elk_stack {
 
   # https://discuss.elastic.co/t/unassigned-shard-after-kibana-4-joins-cluster/39962/4
 
-  exec { 'set-kibana-index-replicas-to-zero':
-    path      => '/usr/bin',
-    command   => "curl -XPUT 'localhost:9200/.kibana/_settings' -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
-    logoutput => true,
-    unless    => "curl 'localhost:9200/.kibana/_settings?pretty' 2>/dev/null | grep -q number_of_replicas.*0",
-  }
-
-  $cluster_name = $::profile::elasticsearch::data_node::config['cluster.name']
-
-  Service["elasticsearch-instance-${cluster_name}"]
-  ~>
-  Exec['wait-for-es-master']
-  ->
-  Service["elasticsearch-instance-${cluster_name}-client-instance"]
-  ~>
-  Exec['wait-for-es-client']
-  ->
-  Service['kibana']
-  ~>
-  Exec['wait-for-kibana']
-  ->
-  Exec['set-kibana-index-replicas-to-zero']
+#  exec { 'set-kibana-index-replicas-to-zero':
+#    path      => '/usr/bin',
+#    command   => "curl -XPUT 'localhost:9200/.kibana/_settings' -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
+#    logoutput => true,
+#    unless    => "curl 'localhost:9200/.kibana/_settings?pretty' 2>/dev/null | grep -q number_of_replicas.*0",
+#  }
+#
+#  $cluster_name = $::profile::elasticsearch::data_node::config['cluster.name']
+#
+#  Service["elasticsearch-instance-${cluster_name}"]
+#  ~>
+#  Wait_for['es-master']
+#  ->
+#  Service["elasticsearch-instance-${cluster_name}-client-instance"]
+#  ~>
+#  Wait_for['es-client']
+#  ->
+#  Service['kibana']
+#  ~>
+#  Wait_for['kibana']
+#  ->
+#  Wait_for['set-kibana-index-replicas-to-zero']
 }
