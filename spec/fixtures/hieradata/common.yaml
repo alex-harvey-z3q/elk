@@ -8,7 +8,7 @@ ntp::restrict:
   - 'default kod nomodify notrap nopeer noquery'
   - '-6 default kod nomodify notrap nopeer noquery'
 
-profile::base::yum::repos: 
+profile::base::yum::repos:
   'C7.0.1406-base':
     ensure: 'present'
     baseurl: 'http://vault.centos.org/7.0.1406/os/$basearch/'

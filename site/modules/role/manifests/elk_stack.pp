@@ -17,6 +17,7 @@ class role::elk_stack {
     regex             => 'Successfully started Logstash API endpoint',
     polling_frequency => 5,  # Wait up to 2 minutes.
     max_retries       => 24,
+    refreshonly       => true,
   }
 
   Service['logstash']
