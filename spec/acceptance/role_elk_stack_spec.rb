@@ -22,6 +22,36 @@ describe 'role::elk_stack' do
     end
   end
 
+  context 'filebeat' do
+
+    context 'packages' do
+      describe package('filebeat') do
+        it { is_expected.to be_installed.with_version('6.3.0') }
+      end
+    end
+
+    context 'config files' do
+
+      describe file('/etc/filebeat/filebeat.yml') do
+        its(:content) { should match /managed by Puppet/ }
+      end
+
+      describe file('/etc/filebeat/conf.d/syslogs.yml') do
+        its(:content) { should match /managed by Puppet/ }
+      end
+    end
+
+    context 'process' do
+      describe process('filebeat') do
+        its(:args) { should match %r{-c /etc/filebeat/filebeat.yml} }
+        its(:args) { should match %r{-path.home /usr/share/filebeat} }
+        its(:args) { should match %r{-path.config /etc/filebeat} }
+        its(:args) { should match %r{-path.data /var/lib/filebeat} }
+        its(:args) { should match %r{-path.logs /var/log/filebeat} }
+      end
+    end
+  end
+
   context 'logstash' do
 
     context 'packages' do
