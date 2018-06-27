@@ -55,19 +55,9 @@ describe 'role::elk_stack' do
   context 'logstash' do
 
     context 'packages' do
-
-      [
-       ['redis',                       '3.2.10'],
-       ['logstash',                    '6.3.0'],
-
-      ].each do |package, version|
-
-        describe package(package) do
-          it { is_expected.to be_installed.with_version(version) }
-        end
-
+      describe package('logstash') do
+        it { is_expected.to be_installed.with_version('6.3.0') }
       end
-
     end
 
     context 'config files' do
@@ -131,6 +121,12 @@ describe 'role::elk_stack' do
   end
 
   context 'redis' do
+    context 'packages' do
+      describe package('logstash') do
+        it { is_expected.to be_installed.with_version('3.2.10') }
+      end
+    end
+
     context 'mount points' do
       describe file('/var/lib/redis') do
         it { is_expected.to be_directory }
@@ -143,6 +139,23 @@ describe 'role::elk_stack' do
     context 'log files' do
       describe file('/var/log/redis/redis.log') do
         its(:content) { should match /Server started, Redis version \d+\.\d+\.\d+/ }
+      end
+    end
+
+    context 'ports' do
+      describe port(6379) do
+        it { should be_listening }
+      end
+    end
+
+    describe 'end to end test' do
+      before(:all) do
+        shell('redis-cli lpush mylist foo')
+      end
+      it 'can push and pop to a list' do
+        shell('redis-cli lpop mylist') do
+          expect(r.stdout).to match /foo/
+        end
       end
     end
   end
