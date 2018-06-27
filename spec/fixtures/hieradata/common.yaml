@@ -229,14 +229,8 @@ profile::base::yum::repos:
     gpgcheck: '1'
     gpgkey: 'http://nginx.org/keys/nginx_signing.key'
     enabled: '1'
-  'elasticsearch-6.x':
+  'ELK-6.x':
     descr: 'elasticsearch repo'
-    baseurl: 'https://artifacts.elastic.co/packages/6.x/yum'
-    gpgcheck: '1'
-    gpgkey: 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
-    enabled: '1'
-  'logstash-6.x':
-    descr: 'Elastic repository for 6.x packages'
     baseurl: 'https://artifacts.elastic.co/packages/6.x/yum'
     gpgcheck: '1'
     gpgkey: 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
