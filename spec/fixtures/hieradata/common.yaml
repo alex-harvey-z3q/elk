@@ -8,6 +8,8 @@ ntp::restrict:
   - 'default kod nomodify notrap nopeer noquery'
   - '-6 default kod nomodify notrap nopeer noquery'
 
+# profile::base
+
 profile::base::yum::repos:
   'C7.0.1406-base':
     ensure: 'present'
@@ -240,8 +242,6 @@ profile::base::yum::repos:
     gpgkey: 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
     enabled: '1'
 
-# profile::base
-
 profile::base::firewall_multis:
   '00099 accept tcp port 22 for ssh':
     dport: '22'
@@ -249,6 +249,20 @@ profile::base::firewall_multis:
     proto: 'tcp'
     source:
       - '0.0.0.0/0'
+
+profile::base::filebeat::manage_repo: false
+profile::base::filebeat::package_ensure: 'latest'
+profile::base::filebeat::major_version: '6'
+
+profile::base::filebeat::outputs:
+  logstash:
+    hosts:
+      - '0.0.0.0:5044'
+    loadbalance: false
+
+profile::base::filebeat::paths:
+  - '/var/log/auth.log'
+  - '/var/log/syslog'
 
 # profile::jdk
 

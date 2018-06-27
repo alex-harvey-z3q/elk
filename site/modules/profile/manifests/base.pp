@@ -5,6 +5,6 @@ class profile::base (
   include profile::base::firewall
   include profile::base::yum
   include ntp
+  include profile::base::filebeat
   #  include profile::base::logrotate
-  #  include profile::base::filebeat
 }

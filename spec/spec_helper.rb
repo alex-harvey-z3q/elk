@@ -22,5 +22,6 @@ RSpec.configure do |c|
     :puppetversion   => '5.5.1',
     :redispv         => '/dev/sdb',
     :selinux         => false,
+    :filebeat_version => '6',
   }
 end
