@@ -1,8 +1,7 @@
 {
-  "index_patterns": ["*"],
+  "index_patterns": ["logstash-*"],
   "settings": {
-    "index.refresh_interval": "5s",
-    "index.number_of_replicas": "0"
+    "index.refresh_interval": "5s"
   },
   "mappings": {
     "_default_": {

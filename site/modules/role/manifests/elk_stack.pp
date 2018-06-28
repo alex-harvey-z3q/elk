@@ -31,6 +31,18 @@ class role::elk_stack {
   ->
   Sysctl['vm.swappiness']
 
+  # This seems to be the best way to set index.number_of_replicas to 0 for
+  # all indices, as required in an all-in-one configuration.
+  #
+  elasticsearch::template { 'zero_replicas':
+    content => {
+      'index_patterns' => ['*'],
+      'settings' => {
+        'index.number_of_replicas' => '0'
+      }
+    },
+  }
+
   # In a single node configuration with ES master and client instances, the
   # first to start will take port 9000.  Similarly, Kibana4 isn't happy unless
   # the ES cluster has started first.  Each ES instances takes less than 10
