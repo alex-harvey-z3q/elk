@@ -37,7 +37,7 @@ describe 'role::elk_stack' do
       end
 
       describe file('/etc/filebeat/conf.d/syslogs.yml') do
-        its(:content) { should match /managed by Puppet/ }
+        it { should be_file }
       end
     end
 
@@ -122,7 +122,7 @@ describe 'role::elk_stack' do
 
   context 'redis' do
     context 'packages' do
-      describe package('logstash') do
+      describe package('redis') do
         it { is_expected.to be_installed.with_version('3.2.10') }
       end
     end
@@ -153,7 +153,7 @@ describe 'role::elk_stack' do
         shell('redis-cli lpush mylist foo')
       end
       it 'can push and pop to a list' do
-        shell('redis-cli lpop mylist') do
+        shell('redis-cli lpop mylist') do |r|
           expect(r.stdout).to match /foo/
         end
       end
