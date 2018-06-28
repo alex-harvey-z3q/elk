@@ -24,5 +24,4 @@ mod 'thias/sysctl'
 # Until next version is released.
 #
 mod 'basti1302/wait_for',
-  :git => 'https://github.com/heini/puppet-wait-for',
-  :ref => 'alexharvey/refreshonly_second_try'
+  :git => 'https://github.com/heini/puppet-wait-for'
