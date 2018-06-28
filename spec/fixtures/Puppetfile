@@ -6,7 +6,12 @@ mod 'puppetlabs/lvm'
 mod 'puppetlabs/firewall'
 mod 'alexharvey/firewall_multi'
 mod 'alexharvey/disable_transparent_hugepage'
-mod 'pcfens/filebeat'
+
+# Workaround for Issue #167.
+#
+mod 'pcfens/filebeat',
+  :git => 'https://github.com/alexharv074/puppet-filebeat.git',
+  :ref => 'Issue_167'
 
 # Until my PRs to fix Issues #947 and #949 are merged.
 #
