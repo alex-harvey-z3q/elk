@@ -405,11 +405,12 @@ profile::elasticsearch::client_node::init_defaults:
 
 # profile::kibana
 
-kibana::package_use_official_repo: false
+kibana::ensure: 'latest'
+kibana::manage_repo: false
 kibana::config:
-  host: '0.0.0.0'
-  port: 5601
-  elasticsearch_url: 'http://localhost:9201'  # 9201 by default on a single VM because 9200 is taken by the ES data node instance.
+  'server.host': '0.0.0.0'
+  'server.port': 5601
+  'elasticsearch.url': 'http://0.0.0.0:9201'  # 9201 by default on a single VM because 9200 is taken by the ES data node instance.
   'pid.file': '/var/run/kibana/kibana.pid'
 
 profile::kibana::firewall_multis: {}

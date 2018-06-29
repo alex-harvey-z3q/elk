@@ -1,9 +1,9 @@
 class role::elk_stack {
   include profile::base
   include profile::elasticsearch::data_node
-#  include profile::elasticsearch::client_node
-#  include profile::kibana
-#  include profile::nginx
+  include profile::elasticsearch::client_node
+  include profile::kibana
+  include profile::nginx
   include profile::redis
   include profile::logstash
 
