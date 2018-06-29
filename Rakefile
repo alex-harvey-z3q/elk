@@ -1,3 +1,12 @@
+# Environment variables:
+#
+#   NO_G10K, NO_LIBRARIAN, NO_CHECKOUT - all have the same effect of preventing
+#     librarian or g10k from installing the modules from the Forge.
+#
+#   LIBRARIAN_VERBOSE - pass --verbose to librarian-puppet.
+#
+#   FORCE_LIBRARIAN - use librarian-puppet even if g10k is available.
+#
 require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
 
@@ -16,10 +25,6 @@ PuppetLint::RakeTask.new(:lint) do |config|
   config.ignore_paths = ["tests/**/*.pp", "vendor/**/*.pp","examples/**/*.pp", "spec/**/*.pp", "pkg/**/*.pp"]
 end
 
-def location
-  ENV['LOCATION'] || 'spec/fixtures'
-end
-
 def run(command)
   puts "Running #{command}"
   begin
@@ -29,29 +34,55 @@ def run(command)
   end
 end
 
+def locate_g10k
+  ENV['PATH'].split(':').each do |p|
+    g10k = File.join(p, 'g10k')
+    if File.exists?(g10k)
+      return g10k
+    end
+  end
+  nil
+end
+
+def no_checkout
+  ENV['NO_G10K'] or ENV['NO_LIBRARIAN'] or ENV['NO_CHECKOUT']
+end
+
+desc 'Install modules with g10k'
+task :g10k_spec_prep do
+  raise "g10k_spec_prep called but set NO_CHECKOUT, NO_LIBRARIAN or NO_G10K set" if no_checkout
+
+  if g10k = locate_g10k
+    if RUBY_PLATFORM =~ /darwin/
+      command = "#{g10k} -puppetfile"
+    else
+      command = "#{g10k} -puppetfile -info"
+    end
+  end
+
+  run("cd spec/fixtures && #{command}")
+end
+
+desc "Run spec tests using g10k to checkout modules"
+task :g10k_spec do
+  Rake::Task[:g10k_spec_prep].invoke
+  Rake::Task[:spec_prep].invoke
+  Rake::Task[:spec_standalone].invoke
+  Rake::Task[:spec_clean].invoke
+end
+
+verbose = ENV['LIBRARIAN_VERBOSE'] ? '--verbose' : ''
+
 desc 'Install puppet modules with librarian-puppet'
 task :librarian_spec_prep do
-  command = "cd #{location} "
-  if ENV['LIBRARIAN_PUPPET_TMP']
-    command += "&& LIBRARIAN_PUPPET_TMP=#{ENV['LIBRARIAN_PUPPET_TMP']} "
-  else
-    command += '&& '
-  end
-  command += "bundle exec librarian-puppet install #{ENV['LIBRARIAN_VERBOSE']}"
-  run command
+  raise "librarian_spec_prep called but set NO_CHECKOUT, NO_LIBRARIAN or NO_G10K set" if no_checkout
+  run("cd spec/fixtures && bundle exec librarian-puppet install #{verbose}")
 end
 
 desc 'Update puppet modules with librarian-puppet'
 task :librarian_update do
   system('rm -f spec/fixtures/Puppetfile.lock')
-  command = "cd #{location} "
-  if ENV['LIBRARIAN_PUPPET_TMP']
-    command += "&& LIBRARIAN_PUPPET_TMP=#{ENV['LIBRARIAN_PUPPET_TMP']} "
-  else
-    command += '&& '
-  end
-  command += "bundle exec librarian-puppet update #{ENV['LIBRARIAN_VERBOSE']}"
-  run command
+  run("cd spec/fixtures && bundle exec librarian-puppet update #{verbose}")
 end
 
 desc "Run spec tests using librarian-puppet to checkout modules"
@@ -60,4 +91,11 @@ task :librarian_spec do
   Rake::Task[:spec_prep].invoke
   Rake::Task[:spec_standalone].invoke
   Rake::Task[:spec_clean].invoke
+end
+
+desc "Run spec tests using fastest available provider"
+if locate_g10k and !ENV['FORCE_LIBRARIAN']
+  task :best_spec_prep => :g10k_spec_prep
+else
+  task :best_spec_prep => :librarian_spec_prep
 end

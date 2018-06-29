@@ -11,13 +11,13 @@ mod 'alexharvey/disable_transparent_hugepage'
 #
 mod 'pcfens/filebeat',
   :git => 'https://github.com/alexharv074/puppet-filebeat.git',
-  :ref => 'Issue_167'
+  :branch => 'Issue_167'
 
 # Until my PRs to fix Issues #947 and #949 are merged.
 #
 mod 'elastic/elasticsearch',
   :git => 'https://github.com/alexharv074/puppet-elasticsearch.git',
-  :ref => 'alex_master'
+  :branch => 'alex_master'
 
 mod 'elastic/logstash'
 mod 'arioch/redis'

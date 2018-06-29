@@ -84,7 +84,7 @@ RSpec.configure do |c|
       on host, 'yum -y update'
     end
 
-    system 'bundle exec rake librarian_spec_prep'
+    system 'bundle exec rake best_spec_prep'
     system 'bundle exec rake spec_prep'
 
     copy_modules_to(host, {
