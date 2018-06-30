@@ -23,5 +23,8 @@ RSpec.configure do |c|
     :redispv         => '/dev/sdb',
     :selinux         => false,
     :filebeat_version => '6',
+    :hostname        => 'myhost',
+    :domain          => 'example.com',
+    :fqdn            => 'myhost.example.com',
   }
 end
