@@ -291,6 +291,9 @@ describe 'role::elk_stack' do
         its(:stdout) { is_expected.to match /green/ }
       end
 
+      # TODO. Extend based on this page:
+      # https://www.safaribooksonline.com/library/view/mastering-elastic-stack/9781786460011/ch03s15.html
+      #
       describe command('curl 0.0.0.0:9600/?pretty') do
         its(:stdout) { is_expected.to match /host.*centos/ }
       end
