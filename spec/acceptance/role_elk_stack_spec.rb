@@ -60,6 +60,13 @@ describe 'role::elk_stack' do
       end
     end
 
+    context 'user' do
+      describe user('logstash') do
+        it { is_expected.to exist }
+        it { is_expected.to have_uid 30001 }
+      end
+    end
+
     context 'config files' do
 
       describe file('/etc/logstash/conf.d/shipper.conf') do
@@ -181,6 +188,21 @@ describe 'role::elk_stack' do
 
     end
 
+    context 'user' do
+      describe user('elasticsearch') do
+        it { is_expected.to exist }
+        it { is_expected.to have_uid 30000 }
+      end
+    end
+
+    context 'ports' do
+      [9200, 9300, 9600].each do |port|
+        describe port(port) do
+          it { should be_listening }
+        end
+      end
+    end
+
     context 'directories' do
       describe file('/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64') do
         it { should be_directory }
@@ -248,22 +270,6 @@ describe 'role::elk_stack' do
       end
     end
 
-    context 'users' do
-
-      [
-       ['elasticsearch', 30000],
-
-      ].each do |user, uid|
-
-        describe user(user) do
-          it { is_expected.to exist }
-          it { is_expected.to have_uid uid }
-        end
-
-      end
-
-    end
-
     context 'kernel parameters' do
 
       describe linux_kernel_parameter('vm.max_map_count') do
@@ -285,9 +291,98 @@ describe 'role::elk_stack' do
         its(:stdout) { is_expected.to match /green/ }
       end
 
+      describe command('curl 0.0.0.0:9600/?pretty') do
+        its(:stdout) { is_expected.to match /host.*centos/ }
+      end
+
       it 'add some data' do
         shell('curl -XPUT 0.0.0.0:9200/blog/user/dilbert -H'"'Content-Type: application/json' -d '{"'"name":"dilbert"}'"' ; sleep 5")
         expect(command("curl '0.0.0.0:9200/blog/user/_search?q=name:Dilbert&pretty'").stdout).to match /_id.*dilbert/
+      end
+    end
+  end
+
+  context 'ES client instance' do
+    context 'ports' do
+      [9201, 9301].each do |port|
+        describe port(port) do
+          it { should be_listening }
+        end
+      end
+    end
+
+    context 'config files' do
+      describe file('/usr/lib/tmpfiles.d/elasticsearch.conf') do
+        its(:content) { is_expected.to match /elasticsearch/ }
+      end
+
+      describe file('/etc/elasticsearch/es01-client-instance/logging.yml') do
+        its(:content) { is_expected.to match /managed by Puppet/ }
+      end
+
+      describe file('/etc/elasticsearch/es01-client-instance/elasticsearch.yml') do
+        its(:content) { is_expected.to match /MANAGED BY PUPPET/ }
+      end
+
+      describe file('/lib/systemd/system/elasticsearch-es01-client-instance.service') do
+        it { is_expected.to be_file }
+      end
+    end
+
+    context 'log files' do
+      describe file('/var/log/elasticsearch/es01-client-instance/es01.log') do
+        its(:content) { is_expected.to match /publish_address.*127.0.0.1:9301/ }
+        its(:content) { is_expected.to match /detected_master.*reason: apply cluster state/ }
+        its(:content) { is_expected.to match /publish_address.*127.0.0.1:9201/ }
+        its(:content) { is_expected.to match /started/ }
+        its(:content) { is_expected.to match /WARN.*Failed to clear cache for realms/ } # What is this?
+      end
+
+      describe file('/var/log/elasticsearch/es01-client-instance/es01_index_search_slowlog.log') do
+        its(:size) { is_expected.to be_zero }
+      end
+
+      describe file('/var/log/elasticsearch/es01-client-instance/es01_index_indexing_slowlog.log') do
+        its(:size) { is_expected.to be_zero }
+      end
+
+      describe file('/var/log/elasticsearch/es01-client-instance/gc.log.0.current') do
+        its(:content) { is_expected.to match /OpenJDK 64-Bit Server VM/ }
+      end
+    end
+
+    context 'commands' do
+      describe command('curl 0.0.0.0:9201') do
+        its(:stdout) { is_expected.to match /name.*es01_client/ }
+      end
+
+      describe command('curl 0.0.0.0:9201/_cluster/health?pretty') do
+        its(:stdout) { is_expected.to match /green/ }
+      end
+    end
+  end
+
+  context 'kibana' do
+    context 'packages' do
+      describe package('kibana') do
+        it { is_expected.to be_installed.with_version('6.3.0') }
+      end
+    end
+
+    context 'user' do
+      describe user('kibana') do
+        it { is_expected.to exist }
+        it { is_expected.to have_uid 30002 }
+      end
+    end
+
+    context 'commands' do
+      describe command('journalctl -u kibana.service') do
+        its(:stdout) { is_expected.to match /Started Kibana/ }
+      end
+
+      describe command('curl 0.0.0.0:5601') do
+        its(:stdout) { is_expected.to match %r{defaultRoute.*/app/kibana} }
       end
     end
   end
