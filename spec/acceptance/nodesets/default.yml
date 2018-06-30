@@ -4,7 +4,7 @@ HOSTS:
     box: puppetlabs/centos-7.2-64-nocm
     hypervisor: vagrant
     ip: 10.10.2.15
-    host_memory: 8192
+    vagrant_memsize: 8192
     volumes:
       sdb:
         size: 5000
