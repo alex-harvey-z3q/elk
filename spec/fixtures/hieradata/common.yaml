@@ -244,11 +244,12 @@ profile::base::firewall_multis:
     source:
       - '0.0.0.0/0'
 
-profile::base::filebeat::manage_repo: false
-profile::base::filebeat::package_ensure: 'latest'
-profile::base::filebeat::major_version: '6'
+# profile::base::filebeat
 
-profile::base::filebeat::outputs:
+filebeat::manage_repo: false
+filebeat::package_ensure: 'latest'
+filebeat::major_version: '6'
+filebeat::outputs:
   logstash:
     hosts:
       - '0.0.0.0:5044'
@@ -304,10 +305,15 @@ profile::logstash::firewall_multis:
     source:
       - '0.0.0.0/0'
 
-profile::logstash::manage_repo: false
-profile::logstash::jvm_options:
+logstash::manage_repo: false
+logstash::jvm_options:
   - '-Xms1g'
   - '-Xmx1g'
+logstash::pipelines:
+  - 'pipeline.id': 'shipper'
+    'path.config': '/etc/logstash/conf.d/shipper.conf'
+  - 'pipeline.id': 'indexer'
+    'path.config': '/etc/logstash/conf.d/indexer.conf'
 
 profile::logstash::configfiles:
   'shipper.conf':
@@ -318,11 +324,6 @@ profile::logstash::configfiles:
     path: '/etc/logstash/conf.d/indexer.conf'
 
 profile::logstash::patternfiles: {}
-profile::logstash::pipelines:
-  - 'pipeline.id': 'shipper'
-    'path.config': '/etc/logstash/conf.d/shipper.conf'
-  - 'pipeline.id': 'indexer'
-    'path.config': '/etc/logstash/conf.d/indexer.conf'
 
 # profile::redis
 
@@ -344,8 +345,6 @@ profile::redis::net_core_somaxconn: 1024
 
 # profile::elasticsearch
 
-# FIXME. For consistency, these should be parameters to the profile.
-#
 elasticsearch::api_host: '0.0.0.0'
 elasticsearch::api_timeout: 120
 elasticsearch::manage_repo: false
