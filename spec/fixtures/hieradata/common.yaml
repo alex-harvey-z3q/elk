@@ -410,7 +410,6 @@ kibana::config:
   'server.host': '0.0.0.0'
   'server.port': 5601
   'elasticsearch.url': 'http://0.0.0.0:9201'  # 9201 by default on a single VM because 9200 is taken by the ES data node instance.
-  'pid.file': '/var/run/kibana/kibana.pid'
 
 profile::kibana::firewall_multis: {}
 profile::kibana::uid: 30002
