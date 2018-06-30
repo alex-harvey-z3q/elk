@@ -12,6 +12,13 @@ HOSTS:
         size: 20000
       sdd:
         size: 20000
+    forwarded_ports:
+      nginx:
+        from: 10080
+        to: 80
+      kibana:
+        from: 5601
+        to: 5601
 CONFIG:
   log_level: verbose
   type: foss
