@@ -26,7 +26,7 @@ describe 'role::elk_stack' do
 
     context 'packages' do
       describe package('filebeat') do
-        it { is_expected.to be_installed.with_version('6.3.0') }
+        it { should be_installed.with_version('6.3.0') }
       end
     end
 
@@ -56,14 +56,14 @@ describe 'role::elk_stack' do
 
     context 'packages' do
       describe package('logstash') do
-        it { is_expected.to be_installed.with_version('6.3.0') }
+        it { should be_installed.with_version('6.3.0') }
       end
     end
 
     context 'user' do
       describe user('logstash') do
-        it { is_expected.to exist }
-        it { is_expected.to have_uid 30001 }
+        it { should exist }
+        it { should have_uid 30001 }
       end
     end
 
@@ -78,50 +78,50 @@ describe 'role::elk_stack' do
       end
 
       describe file('/etc/logstash/jvm.options') do
-        its(:content) { is_expected.to match /managed by Puppet/ }
+        its(:content) { should match /managed by Puppet/ }
       end
 
       describe file('/etc/logstash/log4j2.properties') do
-        it { is_expected.to be_file }
+        it { should be_file }
       end
 
       describe file('/etc/logstash/startup.options') do
-        it { is_expected.to be_file }
+        it { should be_file }
       end
 
       describe file('/etc/logstash/logstash.yml') do
-        its(:content) { is_expected.to match /path.data.*\/var\/lib\/logstash/ }
-        its(:content) { is_expected.to match /path.logs.*\/var\/log\/logstash/ }
+        its(:content) { should match /path.data.*\/var\/lib\/logstash/ }
+        its(:content) { should match /path.logs.*\/var\/log\/logstash/ }
       end
 
       describe file('/etc/logstash/pipelines.yml') do
-        its(:content) { is_expected.to match /pipeline.id.*shipper/ }
-        its(:content) { is_expected.to match /pipeline.id.*indexer/ }
+        its(:content) { should match /pipeline.id.*shipper/ }
+        its(:content) { should match /pipeline.id.*indexer/ }
       end
 
     end
 
     context 'log files' do
       describe file('/var/log/logstash/logstash-plain.log') do
-        its(:content) { is_expected.to match /Starting Logstash/ }
-        its(:content) { is_expected.to match /Starting pipeline.*indexer/ }
-        its(:content) { is_expected.to match /Starting pipeline.*shipper/ }
-        its(:content) { is_expected.to match /Beats inputs: Starting input listener.*5044/ }
-        its(:content) { is_expected.to match /Pipeline started successfully.*shipper/ }
-        its(:content) { is_expected.to match /Elasticsearch pool URLs updated/ }
-        its(:content) { is_expected.to match /Running health check to see if an Elasticsearch connection is working/ }
-        its(:content) { is_expected.to match /Restored connection to ES instance/ }
-        its(:content) { is_expected.to match /ES Output version determined/ }
-        its(:content) { is_expected.to match /Detected a 6.x and above cluster/ }
-        its(:content) { is_expected.to match /New Elasticsearch output/ }
-        its(:content) { is_expected.to match /Registering Redis/ }
-        its(:content) { is_expected.to match /Pipeline started successfully.*indexer/ }
-        its(:content) { is_expected.to match /Pipelines running.*count=>2/ }
-        its(:content) { is_expected.to match /Successfully started Logstash API endpoint.*9600/ }
+        its(:content) { should match /Starting Logstash/ }
+        its(:content) { should match /Starting pipeline.*indexer/ }
+        its(:content) { should match /Starting pipeline.*shipper/ }
+        its(:content) { should match /Beats inputs: Starting input listener.*5044/ }
+        its(:content) { should match /Pipeline started successfully.*shipper/ }
+        its(:content) { should match /Elasticsearch pool URLs updated/ }
+        its(:content) { should match /Running health check to see if an Elasticsearch connection is working/ }
+        its(:content) { should match /Restored connection to ES instance/ }
+        its(:content) { should match /ES Output version determined/ }
+        its(:content) { should match /Detected a 6.x and above cluster/ }
+        its(:content) { should match /New Elasticsearch output/ }
+        its(:content) { should match /Registering Redis/ }
+        its(:content) { should match /Pipeline started successfully.*indexer/ }
+        its(:content) { should match /Pipelines running.*count=>2/ }
+        its(:content) { should match /Successfully started Logstash API endpoint.*9600/ }
       end
 
       describe file('/var/log/logstash/logstash-slowlog-plain.log') do
-        its(:size) { is_expected.to be_zero }
+        its(:size) { should be_zero }
       end
 
     end
@@ -130,16 +130,16 @@ describe 'role::elk_stack' do
   context 'redis' do
     context 'packages' do
       describe package('redis') do
-        it { is_expected.to be_installed.with_version('3.2.10') }
+        it { should be_installed.with_version('3.2.10') }
       end
     end
 
     context 'mount points' do
       describe file('/var/lib/redis') do
-        it { is_expected.to be_directory }
-        it { is_expected.to be_owned_by 'redis' }
-        it { is_expected.to be_grouped_into 'redis' }
-        it { is_expected.to be_mounted.with(:type => 'ext4') }
+        it { should be_directory }
+        it { should be_owned_by 'redis' }
+        it { should be_grouped_into 'redis' }
+        it { should be_mounted.with(:type => 'ext4') }
       end
     end
 
@@ -181,7 +181,7 @@ describe 'role::elk_stack' do
       ].each do |package, version|
 
         describe package(package) do
-          it { is_expected.to be_installed.with_version(version) }
+          it { should be_installed.with_version(version) }
         end
 
       end
@@ -190,8 +190,8 @@ describe 'role::elk_stack' do
 
     context 'user' do
       describe user('elasticsearch') do
-        it { is_expected.to exist }
-        it { is_expected.to have_uid 30000 }
+        it { should exist }
+        it { should have_uid 30000 }
       end
     end
 
@@ -211,91 +211,91 @@ describe 'role::elk_stack' do
 
     context 'config files' do
       describe file('/usr/lib/tmpfiles.d/elasticsearch.conf') do
-        its(:content) { is_expected.to match /elasticsearch/ }
+        its(:content) { should match /elasticsearch/ }
       end
 
       describe file('/etc/elasticsearch/es01/logging.yml') do
-        its(:content) { is_expected.to match /managed by Puppet/ }
+        its(:content) { should match /managed by Puppet/ }
       end
 
       describe file('/etc/elasticsearch/es01/elasticsearch.yml') do
-        its(:content) { is_expected.to match /MANAGED BY PUPPET/ }
+        its(:content) { should match /MANAGED BY PUPPET/ }
       end
 
       describe file('/lib/systemd/system/elasticsearch-es01.service') do
-        it { is_expected.to be_file }
+        it { should be_file }
       end
     end
 
     context 'log files' do
       describe file('/var/log/elasticsearch/es01/es01.log') do
-        its(:content) { is_expected.to match /initializing .../ }
-        its(:content) { is_expected.to match /using.*data paths, mounts/ }
-        its(:content) { is_expected.to match /heap size/ }
-        its(:content) { is_expected.to match /node name.*node ID/ }
-        its(:content) { is_expected.to match /JVM arguments/ }
-        its(:content) { is_expected.to match /loaded module/ }
-        its(:content) { is_expected.to match /no plugins loaded/ }
-        its(:content) { is_expected.to match /using discovery type.*zen/ }
-        its(:content) { is_expected.to match /initialized/ }
-        its(:content) { is_expected.to match /starting .../ }
-        its(:content) { is_expected.to match /publish_address.*127.0.0.1:9300/ }
-        its(:content) { is_expected.to match /zen-disco-elected-as-master.*reason: new_master/ }
-        its(:content) { is_expected.to match /publish_address.*127.0.0.1:9200/ }
-        its(:content) { is_expected.to match /started/ }
-        its(:content) { is_expected.to match /WARN.*Failed to clear cache for realms/ } # What is this?
-        its(:content) { is_expected.to match /adding template/ }
-        its(:content) { is_expected.to match /license.*mode.*basic.*valid/ }
+        its(:content) { should match /initializing .../ }
+        its(:content) { should match /using.*data paths, mounts/ }
+        its(:content) { should match /heap size/ }
+        its(:content) { should match /node name.*node ID/ }
+        its(:content) { should match /JVM arguments/ }
+        its(:content) { should match /loaded module/ }
+        its(:content) { should match /no plugins loaded/ }
+        its(:content) { should match /using discovery type.*zen/ }
+        its(:content) { should match /initialized/ }
+        its(:content) { should match /starting .../ }
+        its(:content) { should match /publish_address.*127.0.0.1:9300/ }
+        its(:content) { should match /zen-disco-elected-as-master.*reason: new_master/ }
+        its(:content) { should match /publish_address.*127.0.0.1:9200/ }
+        its(:content) { should match /started/ }
+        its(:content) { should match /WARN.*Failed to clear cache for realms/ } # What is this?
+        its(:content) { should match /adding template/ }
+        its(:content) { should match /license.*mode.*basic.*valid/ }
       end
 
       describe file('/var/log/elasticsearch/es01/es01_index_search_slowlog.log') do
-        its(:size) { is_expected.to be_zero }
+        its(:size) { should be_zero }
       end
 
       describe file('/var/log/elasticsearch/es01/es01_index_indexing_slowlog.log') do
-        its(:size) { is_expected.to be_zero }
+        its(:size) { should be_zero }
       end
 
       describe file('/var/log/elasticsearch/es01/gc.log.0.current') do
-        its(:content) { is_expected.to match /OpenJDK 64-Bit Server VM/ }
+        its(:content) { should match /OpenJDK 64-Bit Server VM/ }
       end
     end
 
     context 'mount points' do
       describe file('/srv/es') do
-        it { is_expected.to be_directory }
-        it { is_expected.to be_owned_by 'elasticsearch' }
-        it { is_expected.to be_grouped_into 'root' }
-        it { is_expected.to be_mounted.with(:type => 'ext4') }
+        it { should be_directory }
+        it { should be_owned_by 'elasticsearch' }
+        it { should be_grouped_into 'root' }
+        it { should be_mounted.with(:type => 'ext4') }
       end
     end
 
     context 'kernel parameters' do
 
       describe linux_kernel_parameter('vm.max_map_count') do
-        its(:value) { is_expected.to eq 262144 }
+        its(:value) { should eq 262144 }
       end
 
       describe linux_kernel_parameter('vm.swappiness') do
-        its(:value) { is_expected.to eq 1 }
+        its(:value) { should eq 1 }
       end
 
     end
 
     context 'commands' do
       describe command('curl 0.0.0.0:9200') do
-        its(:stdout) { is_expected.to match /cluster_name.*es01/ }
+        its(:stdout) { should match /cluster_name.*es01/ }
       end
 
       describe command('curl 0.0.0.0:9200/_cluster/health?pretty') do
-        its(:stdout) { is_expected.to match /green/ }
+        its(:stdout) { should match /green/ }
       end
 
       # TODO. Extend based on this page:
       # https://www.safaribooksonline.com/library/view/mastering-elastic-stack/9781786460011/ch03s15.html
       #
       describe command('curl 0.0.0.0:9600/?pretty') do
-        its(:stdout) { is_expected.to match /host.*centos/ }
+        its(:stdout) { should match /host.*centos/ }
       end
 
       it 'add some data' do
@@ -316,51 +316,51 @@ describe 'role::elk_stack' do
 
     context 'config files' do
       describe file('/usr/lib/tmpfiles.d/elasticsearch.conf') do
-        its(:content) { is_expected.to match /elasticsearch/ }
+        its(:content) { should match /elasticsearch/ }
       end
 
       describe file('/etc/elasticsearch/es01-client-instance/logging.yml') do
-        its(:content) { is_expected.to match /managed by Puppet/ }
+        its(:content) { should match /managed by Puppet/ }
       end
 
       describe file('/etc/elasticsearch/es01-client-instance/elasticsearch.yml') do
-        its(:content) { is_expected.to match /MANAGED BY PUPPET/ }
+        its(:content) { should match /MANAGED BY PUPPET/ }
       end
 
       describe file('/lib/systemd/system/elasticsearch-es01-client-instance.service') do
-        it { is_expected.to be_file }
+        it { should be_file }
       end
     end
 
     context 'log files' do
       describe file('/var/log/elasticsearch/es01-client-instance/es01.log') do
-        its(:content) { is_expected.to match /publish_address.*127.0.0.1:9301/ }
-        its(:content) { is_expected.to match /detected_master.*reason: apply cluster state/ }
-        its(:content) { is_expected.to match /publish_address.*127.0.0.1:9201/ }
-        its(:content) { is_expected.to match /started/ }
-        its(:content) { is_expected.to match /WARN.*Failed to clear cache for realms/ } # What is this?
+        its(:content) { should match /publish_address.*127.0.0.1:9301/ }
+        its(:content) { should match /detected_master.*reason: apply cluster state/ }
+        its(:content) { should match /publish_address.*127.0.0.1:9201/ }
+        its(:content) { should match /started/ }
+        its(:content) { should match /WARN.*Failed to clear cache for realms/ } # What is this?
       end
 
       describe file('/var/log/elasticsearch/es01-client-instance/es01_index_search_slowlog.log') do
-        its(:size) { is_expected.to be_zero }
+        its(:size) { should be_zero }
       end
 
       describe file('/var/log/elasticsearch/es01-client-instance/es01_index_indexing_slowlog.log') do
-        its(:size) { is_expected.to be_zero }
+        its(:size) { should be_zero }
       end
 
       describe file('/var/log/elasticsearch/es01-client-instance/gc.log.0.current') do
-        its(:content) { is_expected.to match /OpenJDK 64-Bit Server VM/ }
+        its(:content) { should match /OpenJDK 64-Bit Server VM/ }
       end
     end
 
     context 'commands' do
       describe command('curl 0.0.0.0:9201') do
-        its(:stdout) { is_expected.to match /name.*es01_client/ }
+        its(:stdout) { should match /name.*es01_client/ }
       end
 
       describe command('curl 0.0.0.0:9201/_cluster/health?pretty') do
-        its(:stdout) { is_expected.to match /green/ }
+        its(:stdout) { should match /green/ }
       end
     end
   end
@@ -368,24 +368,24 @@ describe 'role::elk_stack' do
   context 'kibana' do
     context 'packages' do
       describe package('kibana') do
-        it { is_expected.to be_installed.with_version('6.3.0') }
+        it { should be_installed.with_version('6.3.0') }
       end
     end
 
     context 'user' do
       describe user('kibana') do
-        it { is_expected.to exist }
-        it { is_expected.to have_uid 30002 }
+        it { should exist }
+        it { should have_uid 30002 }
       end
     end
 
     context 'commands' do
       describe command('journalctl -u kibana.service') do
-        its(:stdout) { is_expected.to match /Started Kibana/ }
+        its(:stdout) { should match /Started Kibana/ }
       end
 
       describe command('curl 0.0.0.0:5601') do
-        its(:stdout) { is_expected.to match %r{defaultRoute.*/app/kibana} }
+        its(:stdout) { should match %r{defaultRoute.*/app/kibana} }
       end
     end
   end
