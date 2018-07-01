@@ -74,10 +74,6 @@ class role::elk_stack {
   Wait_for['es-client']
   ->
   Service['kibana']
-#  ~>
-#  Wait_for['kibana']
-#  ->
-#  Wait_for['set-kibana-index-replicas-to-zero']
 
   # This seems to be the best way to set index.number_of_replicas to 0 for
   # all indices, as required in an all-in-one configuration.
@@ -90,17 +86,4 @@ class role::elk_stack {
       }
     },
   }
-
-  # We also need to manually set number_of_replicas to 0 if running Kibana 4 on
-  # a single-node ES cluster.  As before, we need to wait 10 seconds for Kibana
-  # to start and insert its replica before we can tune the replica settings.
-
-  # https://discuss.elastic.co/t/unassigned-shard-after-kibana-4-joins-cluster/39962/4
-
-#  exec { 'set-kibana-index-replicas-to-zero':
-#    path      => '/usr/bin',
-#    command   => "curl -XPUT '0.0.0.0:9200/.kibana/_settings' -d '{\"index\":{\"number_of_replicas\":0}}' 2>/dev/null",
-#    logoutput => true,
-#    unless    => "curl '0.0.0.0:9200/.kibana/_settings?pretty' 2>/dev/null | grep -q number_of_replicas.*0",
-#  }
 }
