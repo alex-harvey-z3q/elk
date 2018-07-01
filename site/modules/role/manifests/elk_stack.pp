@@ -60,16 +60,4 @@ class role::elk_stack {
   }
   ->
   Service['filebeat']
-
-  # This seems to be the best way to set index.number_of_replicas to 0 for
-  # all indices, as required in an all-in-one configuration.
-  #
-  elasticsearch::template { 'zero_replicas':
-    content => {
-      'index_patterns' => ['*'],
-      'settings' => {
-        'index.number_of_replicas' => '0'
-      }
-    },
-  }
 }
