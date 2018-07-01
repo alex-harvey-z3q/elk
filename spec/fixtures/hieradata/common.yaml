@@ -262,6 +262,12 @@ profile::base::filebeat::paths:
   - '/var/log/messages'
   - '/var/log/testlog'
 
+profile::base::tools:
+  vim:
+    ensure: 'installed'
+  jq:
+    ensure: 'installed'
+
 # profile::jdk
 
 profile::jdk::package: 'java-1.8.0-openjdk'
