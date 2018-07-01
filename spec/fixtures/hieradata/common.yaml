@@ -237,8 +237,11 @@ profile::base::yum::repos:
     enabled: '1'
 
 profile::base::firewall_multis:
-  '00099 accept tcp port 22 for ssh':
-    dport: '22'
+  '00099 accept tcp ports for SSH and Kibana':
+    dport:
+      - 22
+      - 80
+      - 5601
     action: 'accept'
     proto: 'tcp'
     source:
