@@ -256,8 +256,8 @@ filebeat::outputs:
     loadbalance: false
 
 profile::base::filebeat::paths:
-  - '/var/log/auth.log'
-  - '/var/log/syslog'
+  - '/var/log/messages'
+  - '/var/log/testlog'
 
 # profile::jdk
 
