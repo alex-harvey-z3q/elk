@@ -16,17 +16,29 @@ class role::elk_stack {
   ->
   Sysctl['vm.swappiness']
 
-  # I am not at this point sure why, but it seems that the Logstash service can
-  # take quite a while to start. To avoid Beaker tests failing due to a
-  # slow-starting Logstash service, this wait_for pauses the Puppet run until
-  # the Logstash service actually started.
-  #
   Wait_for {
     polling_frequency => 5,  # Wait up to 2 minutes.
     max_retries       => 24,
     refreshonly       => true,
   }
 
+  # On one occasion only I saw a slow-starting Redis cause the Beaker tests
+  # to fail, and it looks like Redis needs to have started before Logstash.
+  #
+  wait_for { 'redis':
+    query => 'cat /var/log/redis/redis.log 2> /dev/null',
+    regex => 'The server is now ready to accept connections on port 6379',
+  }
+
+  Service['redis']
+  ~>
+  Wait_for['redis']
+
+  # I am not at this point sure why, but it seems that the Logstash service can
+  # take quite a while to start. To avoid Beaker tests failing due to a
+  # slow-starting Logstash service, this wait_for pauses the Puppet run until
+  # the Logstash service actually started.
+  #
   wait_for { 'logstash':
     query => 'cat /var/log/logstash/logstash-plain.log 2> /dev/null',
     regex => 'Successfully started Logstash API endpoint',
