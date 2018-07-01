@@ -31,7 +31,6 @@ describe 'role::elk_stack' do
     end
 
     context 'config files' do
-
       describe file('/etc/filebeat/filebeat.yml') do
         its(:content) { should match /managed by Puppet/ }
       end
@@ -40,6 +39,12 @@ describe 'role::elk_stack' do
         it { should be_file }
       end
     end
+
+    context 'log files' do
+      describe file('/var/log/filebeat/filebeat') do
+        its(:content) { should match /filebeat start running/ }
+        its(:content) { should match /DEPRECATED: config.prospectors are deprecated, Use.*config.inputs/ } # FIXME.
+      end
 
     context 'process' do
       describe process('filebeat') do
@@ -67,8 +72,17 @@ describe 'role::elk_stack' do
       end
     end
 
-    context 'config files' do
+    context 'exectuable' do
+      describe file('/usr/share/logstash/bin/logstash') do
+        it { should be_executable }
+      end
 
+      describe file('/usr/share/logstash/bin/logstash-plugin') do
+        it { should be_executable }
+      end
+    end
+
+    context 'config files' do
       describe file('/etc/logstash/conf.d/shipper.conf') do
         its(:content) { should match /MANAGED BY PUPPET/ }
       end
@@ -98,7 +112,6 @@ describe 'role::elk_stack' do
         its(:content) { should match /pipeline.id.*shipper/ }
         its(:content) { should match /pipeline.id.*indexer/ }
       end
-
     end
 
     context 'log files' do
@@ -123,7 +136,12 @@ describe 'role::elk_stack' do
       describe file('/var/log/logstash/logstash-slowlog-plain.log') do
         its(:size) { should be_zero }
       end
+    end
 
+    context 'commands' do
+      describe command('echo hello world | /usr/share/logstash/bin/logstash -e "input { stdin { type => stdin } } output { stdout { } }"')
+        its(:stdout) { should match /"message" => "hello world"/ }
+      end
     end
   end
 
