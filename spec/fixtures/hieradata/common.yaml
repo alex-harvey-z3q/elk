@@ -265,8 +265,6 @@ profile::base::filebeat::paths:
 profile::base::tools:
   vim:
     ensure: 'installed'
-  jq:
-    ensure: 'installed'
 
 # profile::jdk
 
