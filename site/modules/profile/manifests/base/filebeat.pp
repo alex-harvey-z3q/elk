@@ -1,5 +1,5 @@
 class profile::base::filebeat (
-  Array $paths,
+  Array[Stdlib::Absolutepath] $paths,
 ) {
   include filebeat
 

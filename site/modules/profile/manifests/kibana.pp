@@ -1,5 +1,5 @@
 class profile::kibana (
-  Hash $firewall_multis,
+  Hash[String, Hash] $firewall_multis,
   Integer[30000] $uid,
   Integer[30000] $gid,
 ) {

@@ -1,9 +1,18 @@
 class profile::logstash (
   Integer[30000] $uid,
   Integer[30000] $gid,
-  Hash $firewall_multis,
-  Hash $configfiles,
-  Hash $patternfiles,
+
+  Hash[String, Hash] $firewall_multis,
+
+  Hash[String, Struct[{
+    source => Pattern[/puppet:\/\/\//],
+    path   => Stdlib::Absolutepath
+  }]] $configfiles,
+
+  Hash[String, Struct[{
+    source => Pattern[/puppet:\/\/\//],
+    path   => Stdlib::Absolutepath
+  }]] $patternfiles,
 ) {
   create_resources(firewall_multi, $firewall_multis)
 

@@ -1,6 +1,6 @@
 class profile::base (
-  Hash $firewall_multis,
-  Hash $tools,
+  Hash[String, Hash] $firewall_multis,
+  Hash[String, Hash] $tools,
 ) {
   create_resources(firewall_multi, $firewall_multis)
   create_resources(package, $tools)

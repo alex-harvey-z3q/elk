@@ -1,11 +1,11 @@
 class profile::nginx (
-  Hash $firewall_multis,
-  String $backend_host,
+  Hash[String, Hash] $firewall_multis,
+  Pattern[/(\d+(\.|$)){4}/] $backend_host, #/ # comment tricks vim highlighting.
   Integer $backend_port,
   Integer[30000] $uid,
   Integer[30000] $gid,
 ) {
-  create_resources('firewall_multi', $firewall_multis)
+  create_resources(firewall_multi, $firewall_multis)
 
   # Manage the user and group to prevent random UID and
   # GID assignment by the RPM.
@@ -28,5 +28,6 @@ class profile::nginx (
   nginx::resource::server { $facts['fqdn']:
     proxy => "http://$backend_host:$backend_port",
   }
+
   User['nginx'] -> Package['nginx']
 }

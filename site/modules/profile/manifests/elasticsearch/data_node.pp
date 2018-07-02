@@ -1,13 +1,29 @@
 class profile::elasticsearch::data_node (
-  String $datadir,
-  Hash $firewall_multis,
-  Hash $volume_groups,
+  Stdlib::Absolutepath $datadir,
+
+  Hash[String, Hash] $firewall_multis,
+
+  Hash[
+    String, Struct[{
+      physical_volumes => Array[String],
+      logical_volumes  => Hash[String, Struct[{
+        mountpath => Stdlib::Absolutepath
+      }]]
+    }]] $volume_groups,
+
   Hash $config,
   Hash $init_defaults,
-  Hash $es_templates,
+
+  Hash[
+    String, Struct[{
+      source => Pattern[/puppet:\/\/\//]
+    }]] $es_templates,
+
   Hash $es_plugins,
   Hash $curator_jobs,
-  Array $jvm_options,
+
+  Array[String] $jvm_options,
+
   Integer[0,1] $vm_swappiness,
   Integer $vm_max_map_count,
 ) {

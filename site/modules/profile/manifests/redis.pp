@@ -1,8 +1,17 @@
 class profile::redis (
-  Hash $firewall_multis,
-  Hash $volume_groups,
+  Hash[String, Hash] $firewall_multis,
+
+  Hash[
+    String, Struct[{
+      physical_volumes => Array[String],
+      logical_volumes  => Hash[String, Struct[{
+        mountpath => Stdlib::Absolutepath
+      }]]
+    }]] $volume_groups,
+
   Integer[30000] $uid,
   Integer[30000] $gid,
+
   Integer[0,1] $vm_overcommit_memory,
   Integer $net_core_somaxconn,
 ) {

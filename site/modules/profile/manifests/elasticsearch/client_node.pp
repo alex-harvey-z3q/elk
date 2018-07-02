@@ -1,5 +1,5 @@
 class profile::elasticsearch::client_node (
-  Hash $firewall_multis,
+  Hash[String, Hash] $firewall_multis,
   Hash $config,
   Hash $init_defaults,
 ) {
@@ -7,7 +7,9 @@ class profile::elasticsearch::client_node (
 
   include elasticsearch
   include profile::elasticsearch
+
   $cluster_name = $config['cluster.name']
+
   elasticsearch::instance { "${cluster_name}-client-instance":
     init_defaults => $init_defaults,
     config        => $config,
