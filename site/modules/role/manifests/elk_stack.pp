@@ -42,6 +42,11 @@ class role::elk_stack {
   }
   ->
   Service['kibana']
+  ~>
+  wait_for { 'kibana':
+    query => 'journalctl -u kibana.service',
+    regex => 'Server running at.*5601',
+  }
 
   Wait_for['es-master'] -> Service['logstash']
 
