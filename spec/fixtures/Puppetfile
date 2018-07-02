@@ -1,6 +1,5 @@
 forge 'https://forgeapi.puppetlabs.com'
 mod 'puppetlabs/stdlib'
-mod 'puppetlabs/haproxy'
 mod 'puppetlabs/ntp'
 mod 'puppetlabs/lvm'
 mod 'puppetlabs/firewall'
@@ -30,3 +29,30 @@ mod 'thias/sysctl'
 #
 mod 'basti1302/wait_for',
   :git => 'https://github.com/heini/puppet-wait-for'
+
+# Dependencies.
+#
+# Although librarian-puppet can resolve the dependencies itself, g10k can't.
+# The commented-out entries are specified in metadata.json by the parent
+# module, but we don't actually need them.
+
+# Dependencies of arioch/redis.
+mod 'herculesteam/augeasproviders_core'
+mod 'herculesteam/augeasproviders_sysctl'
+#mod 'puppetlabs/apt'
+mod 'stahnma/epel'
+
+# Dependencies of all the elastic modules
+#mod 'elastic/elastic_stack'
+
+# Dependencies of elastic/elastic_stack
+#mod 'puppet/yum'
+
+# Dependencies of elastic/elasticsearch
+mod 'richardc/datacat'
+
+# Dependencies of pcfens/filebeat
+#mod 'puppetlabs/powershell'
+
+# Dependencies of puppet/nginx
+mod 'puppetlabs/concat'
