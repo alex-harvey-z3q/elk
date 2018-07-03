@@ -93,9 +93,17 @@ task :librarian_spec do
   Rake::Task[:spec_clean].invoke
 end
 
-desc "Run spec tests using fastest available provider"
+desc "Update puppet modules with g10k preferred or librarian-puppet"
 if locate_g10k and !ENV['FORCE_LIBRARIAN']
   task :best_spec_prep => :g10k_spec_prep
 else
   task :best_spec_prep => :librarian_spec_prep
+end
+
+desc "Run spec tests using fastest tool to checkout modules"
+task :best_spec do
+  Rake::Task[:best_spec_prep].invoke
+  Rake::Task[:spec_prep].invoke
+  Rake::Task[:spec_standalone].invoke
+  Rake::Task[:spec_clean].invoke
 end
