@@ -402,9 +402,9 @@ profile::elasticsearch::client_node::firewall_multis: {}
 profile::elasticsearch::client_node::config:
   'cluster.name': 'es01'
   'node.name': "es01_client_%{::hostname}"
-  'http.enabled': true
   'node.master': false
   'node.data': false
+  'node.ingest': false
 profile::elasticsearch::client_node::init_defaults:
   JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64'
   ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01-client-instance/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
