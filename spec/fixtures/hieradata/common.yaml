@@ -383,7 +383,19 @@ profile::elasticsearch::data_node::config:
 profile::elasticsearch::data_node::init_defaults:
   JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64'
 profile::elasticsearch::data_node::es_plugins: {}
-profile::elasticsearch::data_node::curator_jobs: {}
+profile::elasticsearch::data_node::curator_jobs:
+  curator_delete:
+    command: '/usr/bin/curator --master-only --logfile /var/log/elasticsearch/curator.log delete --older-than 20'
+    hour: '2'
+    minute: '12'
+  curator_close:
+    command: '/usr/bin/curator --master-only --logfile /var/log/elasticsearch/curator.log close --older-than 10'
+    hour: '2'
+    minute: '24'
+  curator_bloom:
+    command: '/usr/bin/curator --master-only --logfile /var/log/elasticsearch/curator.log bloom --older-than 2'
+    hour: '2'
+    minute: '32'
 profile::elasticsearch::data_node::jvm_options:
   - '-Xms1g'
   - '-Xmx1g'
