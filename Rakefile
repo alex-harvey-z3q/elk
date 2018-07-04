@@ -21,6 +21,7 @@ PuppetLint::RakeTask.new(:lint) do |config|
     'single_quote_string_with_variables',
     'variables_not_enclosed',
     'arrow_alignment',
+    'arrow_on_right_operand_line',
   ]
   config.ignore_paths = ["tests/**/*.pp", "vendor/**/*.pp","examples/**/*.pp", "spec/**/*.pp", "pkg/**/*.pp"]
 end
