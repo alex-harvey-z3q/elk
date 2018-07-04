@@ -1,5 +1,7 @@
 require 'puppetlabs_spec_helper/module_spec_helper'
 
+FileUtils::mkdir_p 'catalogs'
+
 RSpec.configure do |c|
   c.color        = true
   c.hiera_config = 'spec/fixtures/hiera.yaml'
