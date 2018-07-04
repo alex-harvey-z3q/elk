@@ -6,13 +6,12 @@ class profile::logstash (
 
   Hash[String, Struct[{
     source => Pattern[/puppet:\/\/\//],
-    path   => Stdlib::Absolutepath
-  }]] $configfiles,
+    path   => Stdlib::Absolutepath }]] $configfiles,
 
   Hash[String, Struct[{
     source => Pattern[/puppet:\/\/\//],
-    path   => Stdlib::Absolutepath
-  }]] $patternfiles,
+    path   => Stdlib::Absolutepath }]] $patternfiles,
+
 ) {
   create_resources(firewall_multi, $firewall_multis)
 

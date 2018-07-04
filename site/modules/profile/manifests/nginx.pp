@@ -25,6 +25,7 @@ class profile::nginx (
   }
 
   include nginx
+
   nginx::resource::server { $facts['fqdn']:
     proxy => "http://$backend_host:$backend_port",
   }

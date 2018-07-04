@@ -5,9 +5,7 @@ class profile::redis (
     String, Struct[{
       physical_volumes => Array[String],
       logical_volumes  => Hash[String, Struct[{
-        mountpath => Stdlib::Absolutepath
-      }]]
-    }]] $volume_groups,
+        mountpath => Stdlib::Absolutepath }]] }]] $volume_groups,
 
   Integer[30000] $uid,
   Integer[30000] $gid,
