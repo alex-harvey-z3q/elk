@@ -6,8 +6,9 @@
 
 1. [Motivation](#motivation)
 2. [Support](#support)
-3. [Reference](#reference)
-4. [Testing](#testing)
+3. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
+4. [Reference](#reference)
+5. [Testing](#testing)
 
 ## Motivation
 
@@ -22,6 +23,12 @@ This project is intended to solve a variety of problems:
 At the time of writing my intention is to support this solution and keep it up-to-date with the latest upstream ELK components and the ELK Puppet modules that it uses. For this reason, the components pulled are always latest-everything (see `Puppetfile`).
 
 If you have any problems with it or wish to request features feel free to raise an issue and I may (or may not) fix or implement. Pull requests also welcome.
+
+## About Librarian-puppet & g10k
+
+The project is configured to use [librarian-puppet](https://github.com/voxpupuli/librarian-puppet) or [g10k](https://github.com/xorpaul/g10k) to check out the shared modules that this project depends upon.
+
+I prefer Librarian-puppet over r10k for its ability to install dependencies, and I prefer g10k over Librarian-puppet because it has been rewritten in Go and it's just very fast. Librarian-puppet must remain in order to run from within Travis CI. See also the Rakefile.
 
 ## Setup
 
@@ -422,7 +429,7 @@ bundle install
 To run the unit tests from the root of the source code:
 
 ~~~ text
-bundle exec rake librarian_spec
+bundle exec rake best_spec
 ~~~
 
 To run the acceptance tests:
