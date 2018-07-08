@@ -16,6 +16,13 @@ class role::elk_stack {
   ->
   Sysctl['vm.swappiness']
 
+  # See Issue #7. Something around the time of the Logstash package is changing
+  # vm.swappiness to 30. This ordering ensures idempotence.
+  #
+  Package['logstash']
+  ->
+  Sysctl['vm.swappiness']
+
   Wait_for {
     polling_frequency => 5,  # Wait up to 2 minutes.
     max_retries       => 24,
