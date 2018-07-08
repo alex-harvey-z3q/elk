@@ -15,4 +15,8 @@ matrix:
     python: 2.7
     script: "pip install yamllint && yamllint -c yamllint.yml spec/fixtures/hiera* spec/acceptance/nodesets/default.yml *.yml"
 notifications:
-  email: false
+  email:
+    recipients:
+      - 'alexharv074@gmail.com'
+    on_success: never
+    on_failure: always
