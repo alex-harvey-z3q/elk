@@ -157,7 +157,7 @@ The following parameters are expected:
 
 ~~~ yaml
 profile::elasticsearch::client_node::config:
-  'cluster.name': 'es01'
+  'cluster.name': es01
   'node.name': "es01_client_%{::hostname}"
 ~~~
 
@@ -165,7 +165,7 @@ profile::elasticsearch::client_node::config:
 
 ~~~ yaml
 profile::elasticsearch::client_node::init_defaults:
-  JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64'
+  JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
 ~~~
 
 For more information about configuring a coordinating-only node for use with Kibana, see [here](https://www.elastic.co/guide/en/kibana/current/production.html).
@@ -255,7 +255,7 @@ profile::elasticsearch::client_node::config:
 
 ~~~ yaml
 profile::elasticsearch::client_node::init_defaults:
-  JAVA_HOME: '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64'
+  JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
 ~~~
 
 For more information about configuring a coordinating-only node for use with Kibana, see [here](https://www.elastic.co/guide/en/kibana/current/production.html).

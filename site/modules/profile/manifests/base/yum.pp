@@ -1,5 +1,5 @@
 class profile::base::yum (
-  Hash[String, Hash[String, String]] $repos,
+  Hash[String, Hash[String, Variant[Integer, String]]] $repos,
 ) {
   create_resources(yumrepo, $repos)
 
