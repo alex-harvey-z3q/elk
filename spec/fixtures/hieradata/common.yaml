@@ -400,6 +400,7 @@ profile::elasticsearch::data_node::curator_jobs:
 profile::elasticsearch::data_node::jvm_options:
   - -Xms1g
   - -Xmx1g
+  - -XX:HeapDumpPath=%{hiera('profile::elasticsearch::data_node::datadir')}
 profile::elasticsearch::data_node::vm_swappiness: 1
 profile::elasticsearch::data_node::vm_max_map_count: 262144
 
