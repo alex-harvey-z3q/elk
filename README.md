@@ -239,15 +239,15 @@ profile::elasticsearch::data_node::curator_jobs:
 
 ~~~ yaml
 profile::elasticsearch::data_node::jvm_options:
-  - '-Xms1g'
-  - '-Xmx1g'
+  - -Xms1g
+  - -Xmx1g
 ~~~
 
 - `config`. A Hash of config options that are used to populate the `elasticsearch.yml` file. For example, to set the `cluster.name` and `node.name`:
 
 ~~~ yaml
 profile::elasticsearch::client_node::config:
-  'cluster.name': 'es01'
+  'cluster.name': es01
   'node.name': "es01_client_%{::hostname}"
 ~~~
 
@@ -362,7 +362,7 @@ profile::logstash::configfiles:
 This profile just installs the Open JDK package. It expects one parameter, the package name. For example:
 
 ~~~ yaml
-profile::jdk::package: 'java-1.8.0-openjdk'
+profile::jdk::package: java-1.8.0-openjdk
 ~~~
 
 ##### Class: `profile::base::filebeat`
