@@ -6,9 +6,10 @@
 
 1. [Motivation](#motivation)
 2. [Support](#support)
-3. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
-4. [Reference](#reference)
-5. [Testing](#testing)
+3. [Architecture](#architecture)
+4. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
+5. [Reference](#reference)
+6. [Testing](#testing)
 
 ## Motivation
 
@@ -23,6 +24,12 @@ This project is intended to solve a variety of problems:
 At the time of writing my intention is to support this solution and keep it up-to-date with the latest upstream ELK components and the ELK Puppet modules that it uses. For this reason, the components pulled are always latest-everything (see `Puppetfile`).
 
 If you have any problems with it or wish to request features feel free to raise an issue and I may (or may not) fix or implement. Pull requests also welcome.
+
+## Architecture
+
+The basic architecture is shown in the following figure:
+
+![Fig 1](./ELK.png)
 
 ## About Librarian-puppet & g10k
 
