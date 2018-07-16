@@ -24,11 +24,7 @@ mod 'elastic/kibana'
 mod 'puppet/nginx'
 mod 'camptocamp/archive'
 mod 'thias/sysctl'
-
-# Until next version is released.
-#
-mod 'basti1302/wait_for',
-  :git => 'https://github.com/heini/puppet-wait-for'
+mod 'heini/wait_for'
 
 # Dependencies.
 #
