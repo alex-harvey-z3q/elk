@@ -6,13 +6,7 @@ mod 'puppetlabs/firewall'
 mod 'alexharvey/firewall_multi'
 mod 'alexharvey/disable_transparent_hugepage'
 mod 'pcfens/filebeat'
-
-# Until my PRs to fix Issues #947 and #949 are merged.
-#
-mod 'elastic/elasticsearch',
-  :git => 'https://github.com/alexharv074/puppet-elasticsearch.git',
-  :branch => 'alex_master'
-
+mod 'elastic/elasticsearch'
 mod 'elastic/logstash'
 mod 'arioch/redis'
 mod 'elastic/kibana'
