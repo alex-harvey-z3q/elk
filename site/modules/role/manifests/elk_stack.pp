@@ -1,7 +1,7 @@
 class role::elk_stack {
   include profile::base
   include profile::elasticsearch::data_node
-  include profile::elasticsearch::client_node
+  include profile::elasticsearch::coordinating_node
   include profile::kibana
   include profile::nginx
   include profile::redis
@@ -41,10 +41,10 @@ class role::elk_stack {
     regex => 'o.e.n.Node.*started',
   }
   ->
-  Service["elasticsearch-instance-${cluster_name}-client-instance"]
+  Service["elasticsearch-instance-${cluster_name}-coordinating-instance"]
   ~>
   wait_for { 'es-client':
-    query => 'cat /var/log/elasticsearch/es01-client-instance/es01.log 2> /dev/null',
+    query => 'cat /var/log/elasticsearch/es01-coordinating-instance/es01.log 2> /dev/null',
     regex => 'o.e.n.Node.*started',
   }
   ->

@@ -324,7 +324,7 @@ describe 'role::elk_stack' do
     end
   end
 
-  context 'ES client instance' do
+  context 'ES coordinating-only instance' do
     context 'ports' do
       [9201, 9301].each do |port|
         describe port(port) do
@@ -338,21 +338,21 @@ describe 'role::elk_stack' do
         its(:content) { should match /elasticsearch/ }
       end
 
-      describe file('/etc/elasticsearch/es01-client-instance/logging.yml') do
+      describe file('/etc/elasticsearch/es01-coordinating-instance/logging.yml') do
         its(:content) { should match /managed by Puppet/ }
       end
 
-      describe file('/etc/elasticsearch/es01-client-instance/elasticsearch.yml') do
+      describe file('/etc/elasticsearch/es01-coordinating-instance/elasticsearch.yml') do
         its(:content) { should match /MANAGED BY PUPPET/ }
       end
 
-      describe file('/lib/systemd/system/elasticsearch-es01-client-instance.service') do
+      describe file('/lib/systemd/system/elasticsearch-es01-coordinating-instance.service') do
         it { should be_file }
       end
     end
 
     context 'log files' do
-      describe file('/var/log/elasticsearch/es01-client-instance/es01.log') do
+      describe file('/var/log/elasticsearch/es01-coordinating-instance/es01.log') do
         its(:content) { should match /publish_address.*127.0.0.1:9301/ }
         its(:content) { should match /detected_master.*reason: apply cluster state/ }
         its(:content) { should match /publish_address.*127.0.0.1:9201/ }
@@ -360,15 +360,15 @@ describe 'role::elk_stack' do
         its(:content) { should match /WARN.*Failed to clear cache for realms/ } # What is this?
       end
 
-      describe file('/var/log/elasticsearch/es01-client-instance/es01_index_search_slowlog.log') do
+      describe file('/var/log/elasticsearch/es01-coordinating-instance/es01_index_search_slowlog.log') do
         its(:size) { should be_zero }
       end
 
-      describe file('/var/log/elasticsearch/es01-client-instance/es01_index_indexing_slowlog.log') do
+      describe file('/var/log/elasticsearch/es01-coordinating-instance/es01_index_indexing_slowlog.log') do
         its(:size) { should be_zero }
       end
 
-      describe file('/var/log/elasticsearch/es01-client-instance/gc.log.0.current') do
+      describe file('/var/log/elasticsearch/es01-coordinating-instance/gc.log.0.current') do
         its(:content) { should match /OpenJDK 64-Bit Server VM/ }
       end
     end

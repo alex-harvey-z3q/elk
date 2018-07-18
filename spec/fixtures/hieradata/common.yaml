@@ -409,15 +409,15 @@ profile::elasticsearch::data_node::es_templates:
   logstash:
     source: puppet:///modules/profile/logstash/logstash.json
 
-# profile::elasticsearch::client_node
+# profile::elasticsearch::coordinating_node
 #
-profile::elasticsearch::client_node::firewall_multis: {}
-profile::elasticsearch::client_node::config:
+profile::elasticsearch::coordinating_node::firewall_multis: {}
+profile::elasticsearch::coordinating_node::config:
   'cluster.name': es01
   'node.name': "es01_client_%{::hostname}"
-profile::elasticsearch::client_node::init_defaults:
+profile::elasticsearch::coordinating_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
-  ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01-client-instance/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
+  ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01-coordinating-instance/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
 
 # profile::kibana
 #
