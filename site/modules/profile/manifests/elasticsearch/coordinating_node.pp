@@ -1,4 +1,4 @@
-class profile::elasticsearch::client_node (
+class profile::elasticsearch::coordinating_node (
   Hash[String, Hash] $firewall_multis,
   Hash $config,
   Hash $init_defaults,
@@ -20,7 +20,7 @@ class profile::elasticsearch::client_node (
 
   $cluster_name = $config['cluster.name']
 
-  elasticsearch::instance { "${cluster_name}-client-instance":
+  elasticsearch::instance { "${cluster_name}-coordinating-instance":
     init_defaults => $init_defaults,
     config        => merge($config, {
       'node.master' => false,

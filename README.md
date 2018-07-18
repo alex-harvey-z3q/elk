@@ -99,7 +99,7 @@ Finally, you can visit the ELK at [http://localhost:5601](http://localhost:5601)
  - [**Profiles**](#profiles)
    - [**Public Classes**](#public-classes)
       - [Class: profile::base](#class-profilebase)
-      - [Class: profile::elasticsearch::client_node](#class-profileelasticsearchclient_node)
+      - [Class: profile::elasticsearch::coordinating_node](#class-profileelasticsearchcoordinating_node)
       - [Class: profile::elasticsearch::data_node](#class-profileelasticsearchdata_node)
       - [Class: profile::kibana](#class-profilekibana)
       - [Class: profile::logstash](#class-profilelogstash)
@@ -153,9 +153,9 @@ profile::base::firewall_multis:
 
 - `tools`. A Hash of RPMs like `vim` etc for debugging.
 
-##### Class: `profile::elasticsearch::client_node`
+##### Class: `profile::elasticsearch::coordinating_node`
 
-Creates a client node (since ELK 5.x known as a _coordinating-only node_). Elasticsearch Coordinating-only nodes are essentially smart load balancers and Kibana typically uses one of these to distribute requests to cluster. The class sets `node.master => false`, `node.data => false` and `node.ingest => false` and expects other config to be provided by the user. Also included is the private `profile::elasticsearch` class (see below), which configures the elasticsearch user and group and includes the `profile::jdk`.
+Creates a coordinating-only node. Elasticsearch Coordinating-only nodes are essentially smart load balancers and Kibana typically uses one of these to distribute requests to cluster. The class sets `node.master => false`, `node.data => false` and `node.ingest => false` and expects other config to be provided by the user. Also included is the private `profile::elasticsearch` class (see below), which configures the elasticsearch user and group and includes the `profile::jdk`.
 
 The following parameters are expected:
 
@@ -163,15 +163,15 @@ The following parameters are expected:
 - `config`. A Hash of config options that are used to populate the `elasticsearch.yml` file. For example, to set the `cluster.name` and `node.name`:
 
 ~~~ yaml
-profile::elasticsearch::client_node::config:
+profile::elasticsearch::coordinating_node::config:
   'cluster.name': es01
-  'node.name': "es01_client_%{::hostname}"
+  'node.name': "es01_coordinating_%{::hostname}"
 ~~~
 
 - `init_defaults`. A Hash of config options are used to populate the `/etc/sysconfig/defaults` file. For example:
 
 ~~~ yaml
-profile::elasticsearch::client_node::init_defaults:
+profile::elasticsearch::coordinating_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
 ~~~
 
@@ -202,7 +202,7 @@ profile::elasticsearch::data_node::config:
 - `init_defaults`. A Hash of config options are used to populate the `/etc/sysconfig/defaults` file. For example:
 
 ~~~ yaml
-profile::elasticsearch::client_node::init_defaults:
+profile::elasticsearch::coordinating_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
 ~~~
 
@@ -253,15 +253,15 @@ profile::elasticsearch::data_node::jvm_options:
 - `config`. A Hash of config options that are used to populate the `elasticsearch.yml` file. For example, to set the `cluster.name` and `node.name`:
 
 ~~~ yaml
-profile::elasticsearch::client_node::config:
+profile::elasticsearch::coordinating_node::config:
   'cluster.name': es01
-  'node.name': "es01_client_%{::hostname}"
+  'node.name': "es01_coordinating_%{::hostname}"
 ~~~
 
 - `init_defaults`. A Hash of config options are used to populate the `/etc/sysconfig/defaults` file. For example:
 
 ~~~ yaml
-profile::elasticsearch::client_node::init_defaults:
+profile::elasticsearch::coordinating_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
 ~~~
 
@@ -292,7 +292,7 @@ profile::elasticsearch::data_node::config:
 - `init_defaults`. A Hash of config options are used to populate the `/etc/sysconfig/defaults` file. For example:
 
 ~~~ yaml
-profile::elasticsearch::client_node::init_defaults:
+profile::elasticsearch::coordinating_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
 ~~~
 
