@@ -284,34 +284,7 @@ profile::logstash::gid: 30001
 # 1g for ES heap
 # leaving ~ 4G for OS.
 
-# FIXME. None of this makes sense if this common.yaml is for
-# the single-instance.
-#
-profile::logstash::firewall_multis:
-  '00100 accept tcp port 5044 for file beats':
-    dport: 5044
-    action: accept
-    proto: tcp
-    source:
-      - 0.0.0.0/0
-  '00100 accept tcp ports 9300-9400 for logstash indexer':
-    dport: 9300-9400
-    action: accept
-    proto: tcp
-    source:
-      - 0.0.0.0/0
-  '00300 accept udp ports 9300-9400 for logstash indexer':
-    dport: 9300-9400
-    action: accept
-    proto: udp
-    source:
-      - 0.0.0.0/0
-  '00500 accept udp port 5514 for logstash indexer':
-    dport: 5514
-    action: accept
-    proto: udp
-    source:
-      - 0.0.0.0/0
+profile::logstash::firewall_multis: {}
 
 logstash::manage_repo: false
 logstash::jvm_options:
@@ -362,13 +335,7 @@ profile::elasticsearch::gid: 30000
 
 # profile::elasticsearch::data_node
 #
-profile::elasticsearch::data_node::firewall_multis:
-  '00100 accept tcp ports 9200 for elasticsearch':
-    dport: 9200
-    action: accept
-    proto: tcp
-    source:
-      - 0.0.0.0/0
+profile::elasticsearch::data_node::firewall_multis: {}
 profile::elasticsearch::data_node::datadir: /srv/es
 profile::elasticsearch::data_node::volume_groups:
   esvg00:
@@ -436,13 +403,7 @@ profile::kibana::gid: 30002
 #
 nginx::manage_repo: false
 
-profile::nginx::firewall_multis:
-  '00100 accept tcp port 80 for nginx reverse proxy':
-    dport: 80
-    action: accept
-    proto: tcp
-    source:
-      - 0.0.0.0/0
+profile::nginx::firewall_multis: {}
 profile::nginx::backend_host: 0.0.0.0
 profile::nginx::backend_port: 5601
 profile::nginx::uid: 30004
