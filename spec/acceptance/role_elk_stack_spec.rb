@@ -25,7 +25,7 @@ describe 'role::elk_stack' do
   context 'filebeat' do
     context 'packages' do
       describe package('filebeat') do
-        it { should be_installed.with_version('6.3.1') }
+        it { should be_installed.with_version('6.3.2') }
       end
     end
 
@@ -60,7 +60,7 @@ describe 'role::elk_stack' do
   context 'logstash' do
     context 'packages' do
       describe package('logstash') do
-        it { should be_installed.with_version('6.3.1') }
+        it { should be_installed.with_version('6.3.2') }
       end
     end
 
@@ -193,7 +193,7 @@ describe 'role::elk_stack' do
       [
        ['java-1.8.0-openjdk',          '1.8.0'],
        ['java-1.8.0-openjdk-headless', '1.8.0'],
-       ['elasticsearch',               '6.3.1'],
+       ['elasticsearch',               '6.3.2'],
        ['elastic-curator',             '3.2.3'],
        ['python-elasticsearch',        '1.9.0'],
 
@@ -223,7 +223,7 @@ describe 'role::elk_stack' do
     end
 
     context 'directories' do
-      describe file('/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64') do
+      describe file('/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.181-3.b13.el7_5.x86_64') do
         it { should be_directory }
       end
     end
@@ -387,7 +387,7 @@ describe 'role::elk_stack' do
   context 'kibana' do
     context 'packages' do
       describe package('kibana') do
-        it { should be_installed.with_version('6.3.1') }
+        it { should be_installed.with_version('6.3.2') }
       end
     end
 

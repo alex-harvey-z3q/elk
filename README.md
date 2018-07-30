@@ -50,9 +50,9 @@ Make sure you have:
 * VirtualBox (download from [here](https://www.virtualbox.org/wiki/Downloads))
 * Vagrant (download from [here](https://www.vagrantup.com/downloads.html))
 * Ruby Gems (should be already installed on a Mac)
-* bundler (`gem install bundler`)
 * RVM (Ruby version 2.4.1: `rvm install ruby-2.4.1`)
-* (optional) Squid Man (`brew install squidman`)
+* bundler (already installed on newer Macs, and `gem install bundler` otherwise.)
+* (optional) Squid Man (`brew cask install squidman`)
 
 #### Squid Man set up
 
@@ -442,7 +442,7 @@ bundle exec rake best_spec
 To run the acceptance tests:
 
 ~~~ text
-ipaddr=$(ifconfig en0 | awk '/inet/ {print $2}')
+ipaddr=$(ifconfig en0 | awk '$1 == "inet" {print $2}')
 export BEAKER_PACKAGE_PROXY=http://${ipaddr}:3128/
 ~~~
 

@@ -349,7 +349,7 @@ profile::elasticsearch::data_node::config:
   'node.name': "es01_%{::hostname}"
   'node.master': true
 profile::elasticsearch::data_node::init_defaults:
-  JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.el7_5.x86_64
+  JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.181-3.b13.el7_5.x86_64
 profile::elasticsearch::data_node::es_plugins: {}
 profile::elasticsearch::data_node::curator_jobs:
   curator_delete:
