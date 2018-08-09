@@ -149,7 +149,7 @@ describe 'role::elk_stack' do
   context 'redis' do
     context 'packages' do
       describe package('redis') do
-        it { should be_installed.with_version('3.2.10') }
+        it { should be_installed.with_version('3.2.12') }
       end
     end
 
