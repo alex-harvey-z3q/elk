@@ -1,26 +1,31 @@
 class profile::elasticsearch::data_node (
-  Stdlib::Absolutepath $datadir,
 
-  Hash[String, Hash] $firewall_multis,
+  # Mandatory params.
+  Stdlib::Absolutepath     $datadir,
+  Hash[String, Hash]       $firewall_multis,
 
+  # Volume groups.
   Hash[String, Struct[{
     physical_volumes => Array[String],
     logical_volumes  => Hash[String, Struct[{
-      mountpath => Stdlib::Absolutepath }]] }]] $volume_groups,
+      mountpath      => Stdlib::Absolutepath
+    }]]
+  }]]                      $volume_groups,
 
-  Hash $config        = {},
-  Hash $init_defaults = {},
+  # Optional params.
+  Hash                     $config                  = {},
+  Hash                     $init_defaults           = {},
+  Hash                     $es_plugins              = {},
+  Hash                     $curator_jobs            = {},
+  Array[Pattern[/^-/]]     $jvm_options             = [],
+  Integer[0,1]             $vm_swappiness           = undef,
+  Integer                  $vm_max_map_count        = undef,
 
+  # ES templates.
   Hash[String, Struct[{
-    source => Pattern[/puppet:\/\/\//] }]] $es_templates = {},
+    source => Pattern[/puppet:\/\/\//]
+  }]]                      $es_templates            = {},
 
-  Hash $es_plugins    = {},
-  Hash $curator_jobs  = {},
-
-  Array[Pattern[/^-/]] $jvm_options = [],
-
-  Integer[0,1] $vm_swappiness = undef,
-  Integer $vm_max_map_count   = undef,
 ) {
 
   # Users of this profile should always allow this class to configure ES as a
