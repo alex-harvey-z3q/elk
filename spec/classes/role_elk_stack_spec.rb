@@ -11,18 +11,18 @@ describe 'role::elk_stack' do
   # where this custom type retrieves content from Puppet's FileServing
   # indirection.
   #
+  class Fake
+    def content
+      File.read('./site/modules/profile/files/logstash/logstash.json')
+    end
+  end
+
   before(:each) do
     allow(Puppet::FileServing::Metadata.indirection).to receive(:find).
       and_call_original
 
     allow(Puppet::FileServing::Metadata.indirection).to receive(:find).
       with('puppet:///modules/profile/logstash/logstash.json').and_return(true)
-
-    class Fake
-      def content
-        File.read('./site/modules/profile/files/logstash/logstash.json')
-      end
-    end
 
     allow(Puppet::FileServing::Content.indirection).to receive(:find).
       and_call_original
