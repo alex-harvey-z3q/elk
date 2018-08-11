@@ -269,7 +269,7 @@ profile::base::tools:
 
 # profile::jdk
 #
-profile::jdk::package: 'java-1.8.0-openjdk'
+profile::jdk::package: java-1.8.0-openjdk
 
 # profile::logstash
 #
@@ -288,8 +288,8 @@ profile::logstash::firewall_multis: {}
 
 logstash::manage_repo: false
 logstash::jvm_options:
-  - '-Xms1g'
-  - '-Xmx1g'
+  - -Xms1g
+  - -Xmx1g
 logstash::pipelines:
   - 'pipeline.id': shipper
     'path.config': /etc/logstash/conf.d/shipper.conf
@@ -315,10 +315,10 @@ profile::redis::firewall_multis: {}
 profile::redis::volume_groups:
   redisvg00:
     physical_volumes:
-      - "%{::redispv}"
+      - "%{facts.redispv}"
     logical_volumes:
       redislv00:
-        mountpath: "%{hiera('redis::workdir')}"
+        mountpath: "%{lookup('redis::workdir')}"
 profile::redis::uid: 30003
 profile::redis::gid: 30003
 profile::redis::vm_overcommit_memory: 1
@@ -340,13 +340,13 @@ profile::elasticsearch::data_node::datadir: /srv/es
 profile::elasticsearch::data_node::volume_groups:
   esvg00:
     physical_volumes:
-      - "%{::espv}"
+      - "%{facts.espv}"
     logical_volumes:
       eslv00:
-        mountpath: "%{hiera('profile::elasticsearch::data_node::datadir')}"
+        mountpath: "%{lookup('profile::elasticsearch::data_node::datadir')}"
 profile::elasticsearch::data_node::config:
   'cluster.name': es01
-  'node.name': "es01_%{::hostname}"
+  'node.name': "es01_%{facts.hostname}"
   'node.master': true
 profile::elasticsearch::data_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.181-3.b13.el7_5.x86_64
@@ -367,7 +367,7 @@ profile::elasticsearch::data_node::curator_jobs:
 profile::elasticsearch::data_node::jvm_options:
   - -Xms1g
   - -Xmx1g
-  - -XX:HeapDumpPath=%{hiera('profile::elasticsearch::data_node::datadir')}
+  - "-XX:HeapDumpPath=%{lookup('profile::elasticsearch::data_node::datadir')}"
 profile::elasticsearch::data_node::vm_swappiness: 1
 profile::elasticsearch::data_node::vm_max_map_count: 262144
 
@@ -381,7 +381,7 @@ profile::elasticsearch::data_node::es_templates:
 profile::elasticsearch::coordinating_node::firewall_multis: {}
 profile::elasticsearch::coordinating_node::config:
   'cluster.name': es01
-  'node.name': "es01_coordinating_%{::hostname}"
+  'node.name': "es01_coordinating_%{facts.hostname}"
 profile::elasticsearch::coordinating_node::init_defaults:
   JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
   ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01-coordinating-instance/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
