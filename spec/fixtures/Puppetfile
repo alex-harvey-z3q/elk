@@ -1,5 +1,11 @@
 forge 'https://forgeapi.puppetlabs.com'
-mod 'puppetlabs/stdlib'
+
+# All other dependencies specify < 5.0.0 whereas if I allow latest
+# released ~ 18 days ago at the time of writing, librarian-puppet
+# can't resolve the dependencies.
+#
+mod 'puppetlabs/stdlib', '< 5.0.0'
+
 mod 'puppetlabs/ntp'
 mod 'puppetlabs/lvm'
 mod 'puppetlabs/firewall'
