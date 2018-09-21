@@ -11,6 +11,7 @@ end
 group :tests do
   gem 'puppetlabs_spec_helper'
   gem 'librarian-puppet'
+  gem 'versionomy'
 end
 
 group :system_tests do

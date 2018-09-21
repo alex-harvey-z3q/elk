@@ -11,6 +11,10 @@ matrix:
     rvm: 2.4.1
     env: PUPPET_GEM_VERSION="~> 5.0" STRICT_VARIABLES=yes LIBRARIAN_VERBOSE=true
     script: "bundle exec rake lint && bundle exec rake librarian_spec SPEC_OPTS='--format documentation'"
+  - language: ruby
+    rvm: 2.4.1
+    env: PUPPET_GEM_VERSION="~> 6.0" STRICT_VARIABLES=yes LIBRARIAN_VERBOSE=true
+    script: "bundle exec rake lint && bundle exec rake librarian_spec SPEC_OPTS='--format documentation'"
   - language: python
     python: 2.7
     script: "pip install yamllint && yamllint -c yamllint.yml spec/fixtures/hiera* spec/acceptance/nodesets/default.yml *.yml"

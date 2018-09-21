@@ -9,6 +9,8 @@
 #
 require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
+require 'versionomy'
+require 'puppet/version'
 
 Rake::Task[:lint].clear
 PuppetLint.configuration.relative = true
@@ -49,6 +51,15 @@ def no_checkout
   ENV['NO_G10K'] or ENV['NO_LIBRARIAN'] or ENV['NO_CHECKOUT']
 end
 
+desc 'Generate Puppetfile'
+task :generate_puppetfile do
+  puppetfile = 'spec/fixtures/Puppetfile.v6'
+  if Versionomy.parse(Puppet.version) < Versionomy.parse('6.0.0')
+    puppetfile = 'spec/fixtures/Puppetfile.legacy'
+  end
+  FileUtils::cp puppetfile, 'spec/fixtures/Puppetfile'
+end
+
 desc 'Install modules with g10k'
 task :g10k_spec_prep do
   raise "g10k_spec_prep called but set NO_CHECKOUT, NO_LIBRARIAN or NO_G10K set" if no_checkout
@@ -66,6 +77,7 @@ end
 
 desc "Run spec tests using g10k to checkout modules"
 task :g10k_spec do
+  Rake::Task[:generate_puppetfile].invoke
   Rake::Task[:g10k_spec_prep].invoke
   Rake::Task[:spec_prep].invoke
   Rake::Task[:spec_standalone].invoke
@@ -88,6 +100,7 @@ end
 
 desc "Run spec tests using librarian-puppet to checkout modules"
 task :librarian_spec do
+  Rake::Task[:generate_puppetfile].invoke
   Rake::Task[:librarian_spec_prep].invoke
   Rake::Task[:spec_prep].invoke
   Rake::Task[:spec_standalone].invoke
@@ -103,8 +116,15 @@ end
 
 desc "Run spec tests using fastest tool to checkout modules"
 task :best_spec do
+  Rake::Task[:generate_puppetfile].invoke
   Rake::Task[:best_spec_prep].invoke
   Rake::Task[:spec_prep].invoke
   Rake::Task[:spec_standalone].invoke
   Rake::Task[:spec_clean].invoke
+end
+
+desc "Clean Puppet 6-only modules"
+task :clean_puppet_6 do
+  modules = ['yum','mount','cron','augeas']
+  modules.map { |x| FileUtils::rm_rf Dir.glob("spec/fixtures/modules/#{x}*") }
 end
