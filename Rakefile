@@ -79,9 +79,7 @@ desc "Run spec tests using g10k to checkout modules"
 task :g10k_spec do
   Rake::Task[:generate_puppetfile].invoke
   Rake::Task[:g10k_spec_prep].invoke
-  Rake::Task[:spec_prep].invoke
-  Rake::Task[:spec_standalone].invoke
-  Rake::Task[:spec_clean].invoke
+  Rake::Task[:spec].invoke
 end
 
 verbose = ENV['LIBRARIAN_VERBOSE'] ? '--verbose' : ''
@@ -102,9 +100,7 @@ desc "Run spec tests using librarian-puppet to checkout modules"
 task :librarian_spec do
   Rake::Task[:generate_puppetfile].invoke
   Rake::Task[:librarian_spec_prep].invoke
-  Rake::Task[:spec_prep].invoke
-  Rake::Task[:spec_standalone].invoke
-  Rake::Task[:spec_clean].invoke
+  Rake::Task[:spec].invoke
 end
 
 desc "Update puppet modules with g10k preferred or librarian-puppet"
@@ -118,9 +114,7 @@ desc "Run spec tests using fastest tool to checkout modules"
 task :best_spec do
   Rake::Task[:generate_puppetfile].invoke
   Rake::Task[:best_spec_prep].invoke
-  Rake::Task[:spec_prep].invoke
-  Rake::Task[:spec_standalone].invoke
-  Rake::Task[:spec_clean].invoke
+  Rake::Task[:spec].invoke
 end
 
 desc "Clean Puppet 6-only modules"
