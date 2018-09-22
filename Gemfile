@@ -4,6 +4,7 @@ group :development do
   gem 'pry'
   gem 'pry-rescue'
   gem 'pry-stack_explorer'
+  gem 'debug_inspector', '<= 0.0.2'
   gem 'hashdiff'
   gem 'awesome_print'
 end
