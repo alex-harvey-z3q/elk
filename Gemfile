@@ -19,6 +19,8 @@ group :system_tests do
   gem 'beaker'
   gem 'beaker-rspec'
   gem 'beaker-puppet_install_helper'
+  gem 'beaker-vagrant'
+  gem 'beaker-pe'
 end
 
 gem 'facter'

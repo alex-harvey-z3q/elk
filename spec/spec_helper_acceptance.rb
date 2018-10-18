@@ -42,9 +42,11 @@
 #   ENV['YUM_UPDATE']
 #     If set, a yum update will be run before testing.
 
-require 'beaker-rspec/spec_helper'
-require 'beaker-rspec/helpers/serverspec'
+require 'beaker-pe'
+require 'beaker-puppet'
+require 'beaker-rspec'
 require 'beaker/puppet_install_helper'
+require 'puppet'
 
 def copy_modules_to(host, opts = {})
   Dir["#{opts[:source]}/*"].each do |dir|
