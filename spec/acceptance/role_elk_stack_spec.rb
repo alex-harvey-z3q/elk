@@ -11,6 +11,8 @@ Firewall {
 include role::elk_stack
 EOS
 
+elk_version = '6.4.2'
+
 describe 'role::elk_stack' do
   context 'puppet apply' do
     it 'is expected to be idempotent and apply without errors' do
@@ -25,7 +27,7 @@ describe 'role::elk_stack' do
   context 'filebeat' do
     context 'packages' do
       describe package('filebeat') do
-        it { should be_installed.with_version('6.3.2') }
+        it { should be_installed.with_version(elk_version) }
       end
     end
 
@@ -60,7 +62,7 @@ describe 'role::elk_stack' do
   context 'logstash' do
     context 'packages' do
       describe package('logstash') do
-        it { should be_installed.with_version('6.3.2') }
+        it { should be_installed.with_version(elk_version) }
       end
     end
 
@@ -193,7 +195,7 @@ describe 'role::elk_stack' do
       [
        ['java-1.8.0-openjdk',          '1.8.0'],
        ['java-1.8.0-openjdk-headless', '1.8.0'],
-       ['elasticsearch',               '6.3.2'],
+       ['elasticsearch',               elk_version],
        ['elastic-curator',             '3.2.3'],
        ['python-elasticsearch',        '1.9.0'],
 
@@ -387,7 +389,7 @@ describe 'role::elk_stack' do
   context 'kibana' do
     context 'packages' do
       describe package('kibana') do
-        it { should be_installed.with_version('6.3.2') }
+        it { should be_installed.with_version(elk_version) }
       end
     end
 
