@@ -1,5 +1,8 @@
 require 'spec_helper_acceptance'
 
+elk_version = '6.5.0'
+openjdk = 'java-1.8.0-openjdk-1.8.0.191.b12-0.el7_5.x86_64'
+
 pp = <<-EOS
 stage { 'pre': before => Stage['main'] }
 
@@ -10,8 +13,6 @@ Firewall {
 
 include role::elk_stack
 EOS
-
-elk_version = '6.4.2'
 
 describe 'role::elk_stack' do
   context 'puppet apply' do
@@ -225,7 +226,7 @@ describe 'role::elk_stack' do
     end
 
     context 'directories' do
-      describe file('/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.181-3.b13.el7_5.x86_64') do
+      describe file("/usr/lib/jvm/#{openjdk}") do
         it { should be_directory }
       end
     end
@@ -250,7 +251,7 @@ describe 'role::elk_stack' do
 
     context 'log files' do
       describe file('/var/log/elasticsearch/es01/es01.log') do
-        its(:content) { should match /initializing .../ }
+        its(:content) { should match /initialized/ }
         its(:content) { should match /using.*data paths, mounts/ }
         its(:content) { should match /heap size/ }
         its(:content) { should match /node name.*node ID/ }
