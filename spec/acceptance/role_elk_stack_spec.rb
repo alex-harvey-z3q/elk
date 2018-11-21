@@ -406,8 +406,8 @@ describe 'role::elk_stack' do
         its(:stdout) { should match /Started Kibana/ }
       end
 
-      describe command('curl 0.0.0.0:5601') do
-        its(:stdout) { should match %r{defaultRoute.*/app/kibana} }
+      describe command('curl 0.0.0.0:5601/status -I') do
+        its(:stdout) { should match %r{200 OK} }
       end
     end
   end
