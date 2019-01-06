@@ -10,6 +10,7 @@
 4. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
 5. [Reference](#reference)
 6. [Testing](#testing)
+7. [Donate](#donate)
 
 ## Motivation
 
@@ -24,6 +25,8 @@ This project is intended to solve a variety of problems:
 At the time of writing my intention is to support this solution and keep it up-to-date with the latest upstream ELK components and the ELK Puppet modules that it uses. For this reason, the components pulled are always latest-everything (see `Puppetfile`).
 
 If you have any problems with it or wish to request features feel free to raise an issue and I may (or may not) fix or implement. Pull requests also welcome.
+
+Also, consider [donating](#donate).
 
 ## Architecture
 
@@ -467,3 +470,9 @@ bundle exec rspec spec/acceptance
 ~~~
 
 Tested using Puppet 4.10.11, 5.5.1 and Ruby 2.4.1.
+
+## Donate
+
+If you find that this code saved your project some significant time, consider donating:
+
+[![paypal](https://www.paypalobjects.com/en_AU/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6849RBYT6VYBQ)
