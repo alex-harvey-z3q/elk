@@ -1,0 +1,55 @@
+forge 'https://forgeapi.puppetlabs.com'
+
+# All other dependencies specify < 5.0.0 whereas if I allow latest
+# released ~ 18 days ago at the time of writing, librarian-puppet
+# can't resolve the dependencies.
+#
+mod 'puppetlabs/stdlib', '< 5.0.0'
+
+mod 'puppetlabs/ntp'
+mod 'puppetlabs/lvm'
+
+# See https://tickets.puppetlabs.com/browse/MODULES-2119.
+#
+mod 'puppetlabs/firewall',
+  :git => 'git@github.com:alexharv074/puppet-filebeat.git',
+  :branch => 'alexharvey/further_changes_for_MODULES-2119'
+
+mod 'alexharvey/firewall_multi'
+mod 'alexharvey/disable_transparent_hugepage'
+mod 'pcfens/filebeat'
+mod 'elastic/elasticsearch'
+mod 'elastic/logstash'
+mod 'arioch/redis'
+mod 'elastic/kibana'
+mod 'puppet/nginx'
+mod 'camptocamp/archive'
+mod 'thias/sysctl'
+mod 'heini/wait_for'
+
+# Dependencies.
+#
+# Although librarian-puppet can resolve the dependencies itself, g10k can't.
+# The commented-out entries are specified in metadata.json by the parent
+# module, but we don't actually need them.
+
+# Dependencies of arioch/redis.
+mod 'herculesteam/augeasproviders_core'
+mod 'herculesteam/augeasproviders_sysctl'
+#mod 'puppetlabs/apt'
+mod 'stahnma/epel'
+
+# Dependencies of all the elastic modules
+#mod 'elastic/elastic_stack'
+
+# Dependencies of elastic/elastic_stack
+#mod 'puppet/yum'
+
+# Dependencies of elastic/elasticsearch
+mod 'richardc/datacat'
+
+# Dependencies of pcfens/filebeat
+#mod 'puppetlabs/powershell'
+
+# Dependencies of puppet/nginx
+mod 'puppetlabs/concat'
