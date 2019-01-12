@@ -119,19 +119,20 @@ describe 'role::elk_stack' do
     context 'log files' do
       describe file('/var/log/logstash/logstash-plain.log') do
         its(:content) { should match /Starting Logstash/ }
+        its(:content) { should match /No persistent UUID file found. Generating new UUID/ }
         its(:content) { should match /Starting pipeline.*indexer/ }
         its(:content) { should match /Starting pipeline.*shipper/ }
         its(:content) { should match /Beats inputs: Starting input listener.*5044/ }
         its(:content) { should match /Pipeline started successfully.*shipper/ }
         its(:content) { should match /Elasticsearch pool URLs updated/ }
-        its(:content) { should match /Running health check to see if an Elasticsearch connection is working/ }
         its(:content) { should match /Restored connection to ES instance/ }
         its(:content) { should match /ES Output version determined/ }
-        its(:content) { should match /Detected a 6.x and above cluster/ }
+        its(:content) { should match /Detected a 6.x and above cluster: the.*type.*event field won.*t be used to determine the document _type/ }
         its(:content) { should match /New Elasticsearch output/ }
         its(:content) { should match /Registering Redis/ }
         its(:content) { should match /Pipeline started successfully.*indexer/ }
         its(:content) { should match /Pipelines running.*count=>2/ }
+        its(:content) { should match /Starting server on port: 5044/ }
         its(:content) { should match /Successfully started Logstash API endpoint.*9600/ }
       end
 
