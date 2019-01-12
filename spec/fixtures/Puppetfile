@@ -12,7 +12,7 @@ mod 'puppetlabs/lvm'
 # See https://tickets.puppetlabs.com/browse/MODULES-2119.
 #
 mod 'puppetlabs/firewall',
-  :git => 'git@github.com:alexharv074/puppet-filebeat.git',
+  :git => 'git@github.com:alexharv074/puppetlabs-firewall.git',
   :branch => 'alexharvey/further_changes_for_MODULES-2119'
 
 mod 'alexharvey/firewall_multi'
