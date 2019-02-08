@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-elk_version = '6.5.4'
+elk_version = '6.6.0'
 openjdk = 'java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64'
 
 pp = <<-EOS
