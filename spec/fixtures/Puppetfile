@@ -20,7 +20,11 @@ mod 'alexharvey/disable_transparent_hugepage'
 mod 'pcfens/filebeat'
 mod 'elastic/elasticsearch'
 mod 'elastic/logstash'
-mod 'arioch/redis'
+
+mod 'arioch/redis',
+  :git => 'git@github.com:alexharv074/puppet-redis.git',
+  :branch => 'alexharvey/fix_up_tests'
+
 mod 'elastic/kibana'
 mod 'puppet/nginx'
 mod 'camptocamp/archive'
