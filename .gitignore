@@ -9,5 +9,6 @@ spec/fixtures/modules
 spec/fixtures/.librarian
 spec/fixtures/.tmp
 spec/fixtures/Puppetfile.lock
+spec/fixtures/Puppetfile
 .bundle
 catalogs
