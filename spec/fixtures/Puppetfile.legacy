@@ -1,10 +1,6 @@
 forge 'https://forgeapi.puppetlabs.com'
 
-# All other dependencies specify < 5.0.0 whereas if I allow latest
-# released ~ 18 days ago at the time of writing, librarian-puppet
-# can't resolve the dependencies.
-#
-mod 'puppetlabs/stdlib', '< 5.0.0'
+mod 'puppetlabs/stdlib'
 
 mod 'puppetlabs/ntp'
 mod 'puppetlabs/lvm'
@@ -14,7 +10,14 @@ mod 'alexharvey/disable_transparent_hugepage'
 mod 'pcfens/filebeat'
 mod 'elastic/elasticsearch'
 mod 'elastic/logstash'
-mod 'arioch/redis'
+
+# At this point arioch/redis is the only module still requiring stdlib
+# < 5.0.0. My branch updates arioch/redis to support latest stdlib.
+#
+mod 'arioch/redis',
+  :git => 'https://github.com/alexharv074/puppet-redis.git',
+  :branch => 'alexharvey/fix_up_tests'
+
 mod 'elastic/kibana'
 mod 'puppet/nginx'
 mod 'camptocamp/archive'
