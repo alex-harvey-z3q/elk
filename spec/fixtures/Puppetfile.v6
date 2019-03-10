@@ -10,14 +10,7 @@ mod 'alexharvey/disable_transparent_hugepage'
 mod 'pcfens/filebeat'
 mod 'elastic/elasticsearch'
 mod 'elastic/logstash'
-
-# At this point arioch/redis is the only module still requiring stdlib
-# < 5.0.0. My branch updates arioch/redis to support latest stdlib.
-#
-mod 'arioch/redis',
-  :git => 'https://github.com/alexharv074/puppet-redis.git',
-  :branch => 'alexharvey/fix_up_tests'
-
+mod 'arioch/redis'
 mod 'elastic/kibana'
 mod 'puppet/nginx'
 mod 'camptocamp/archive'
