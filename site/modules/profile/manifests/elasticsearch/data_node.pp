@@ -5,12 +5,11 @@ class profile::elasticsearch::data_node (
   Hash[String, Hash]       $firewall_multis,
 
   # Volume groups.
-  Hash[Pattern[/^[a-z]+vg\d+$/], Struct[{
-    physical_volumes => Array[Stdlib::Absolutepath],
-    logical_volumes  => Hash[
-      Pattern[/^[a-z]+lv\d+$/], Struct[{
-        mountpath      => Stdlib::Absolutepath
-      }]]
+  Hash[String, Struct[{
+    physical_volumes => Array[String],
+    logical_volumes  => Hash[String, Struct[{
+      mountpath      => Stdlib::Absolutepath
+    }]]
   }]]                      $volume_groups,
 
   # Optional params.

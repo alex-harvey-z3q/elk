@@ -7,7 +7,6 @@ group :development do
   gem 'debug_inspector', '<= 0.0.2'
   gem 'hashdiff'
   gem 'awesome_print'
-  gem 'puppet-strings'
 end
 
 group :tests do

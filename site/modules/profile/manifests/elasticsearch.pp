@@ -1,4 +1,3 @@
-
 class profile::elasticsearch (
   Integer[30000] $uid,
   Integer[30000] $gid,
