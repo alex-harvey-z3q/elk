@@ -1,6 +1,14 @@
 forge 'https://forgeapi.puppetlabs.com'
 
-mod 'puppetlabs/stdlib'
+# To analyse these dependencies:
+#   cat spec/**/metadata.json | jq -r '.name as $n | .dependencies[] |
+#     select(.name=="puppetlabs/stdlib") | [$n, .version_requirement] | @tsv'
+#
+# To try reinstalling:
+#   rm -f spec/fixtures/Puppetfile.lock ; LIBRARIAN_VERBOSE=true \
+#     bundle exec rake generate_puppetfile librarian_spec_prep 
+
+mod 'puppetlabs/stdlib', '< 6.0.0'
 
 mod 'puppetlabs/ntp'
 mod 'puppetlabs/lvm'
