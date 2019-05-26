@@ -12,3 +12,5 @@ spec/fixtures/Puppetfile.lock
 spec/fixtures/Puppetfile
 .bundle
 catalogs
+docs/
+.yardoc/
