@@ -1,7 +1,7 @@
 require 'spec_helper_acceptance'
 
 elk_version = '6.8.0'
-openjdk = 'java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64'
+openjdk = 'java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64'
 
 pp = <<-EOS
 stage { 'pre': before => Stage['main'] }
@@ -193,7 +193,6 @@ describe 'role::elk_stack' do
   context 'elasticsearch' do
 
     context 'packages' do
-
       [
        ['java-1.8.0-openjdk',          '1.8.0'],
        ['java-1.8.0-openjdk-headless', '1.8.0'],
@@ -205,9 +204,7 @@ describe 'role::elk_stack' do
         describe package(package) do
           it { should be_installed.with_version(version) }
         end
-
       end
-
     end
 
     context 'user' do
@@ -293,7 +290,6 @@ describe 'role::elk_stack' do
     end
 
     context 'kernel parameters' do
-
       describe linux_kernel_parameter('vm.max_map_count') do
         its(:value) { should eq 262144 }
       end
@@ -301,7 +297,6 @@ describe 'role::elk_stack' do
       describe linux_kernel_parameter('vm.swappiness') do
         its(:value) { should eq 1 }
       end
-
     end
 
     context 'commands' do
