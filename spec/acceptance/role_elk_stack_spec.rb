@@ -198,8 +198,7 @@ describe 'role::elk_stack' do
        ['java-1.8.0-openjdk',          '1.8.0'],
        ['java-1.8.0-openjdk-headless', '1.8.0'],
        ['elasticsearch',               elk_version],
-       ['elastic-curator',             '3.2.3'],
-       ['python-elasticsearch',        '1.9.0'],
+       ['elasticsearch-curator',       '5.7.6'],
 
       ].each do |package, version|
 

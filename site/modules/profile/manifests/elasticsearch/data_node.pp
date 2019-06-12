@@ -64,7 +64,7 @@ class profile::elasticsearch::data_node (
   create_resources(elasticsearch::plugin, $es_plugins)
 
   unless empty($curator_jobs) {
-    package { 'elastic-curator':
+    package { 'elasticsearch-curator':
       ensure => installed,
     }
     create_resources(cron, $curator_jobs)

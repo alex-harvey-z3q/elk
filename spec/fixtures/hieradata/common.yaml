@@ -236,6 +236,12 @@ profile::base::yum::repos:
     gpgcheck: 1
     gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
     enabled: 1
+  'curator-5':
+    descr: CentOS/RHEL 6 repository for Elasticsearch Curator 5.x packages
+    baseurl: https://packages.elastic.co/curator/5/centos/6
+    gpgcheck: 1
+    gpgkey: https://packages.elastic.co/GPG-KEY-elasticsearch
+    enabled: 1
 
 profile::base::firewall_multis:
   '00099 accept tcp ports for SSH and Kibana':
