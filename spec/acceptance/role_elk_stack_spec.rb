@@ -106,8 +106,8 @@ describe 'role::elk_stack' do
       end
 
       describe file('/etc/logstash/logstash.yml') do
-        its(:content) { should match /path.data.*\/var\/lib\/logstash/ }
-        its(:content) { should match /path.logs.*\/var\/log\/logstash/ }
+        its(:content) { should match %r{path.data.*/var/lib/logstash} }
+        its(:content) { should match %r{path.logs.*/var/log/logstash} }
       end
 
       describe file('/etc/logstash/pipelines.yml') do
