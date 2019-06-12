@@ -449,6 +449,13 @@ ipaddr=$(ifconfig en0 | awk '$1 == "inet" {print $2}')
 export BEAKER_PACKAGE_PROXY=http://${ipaddr}:3128/
 ~~~
 
+Puppet 6.4.2:
+
+~~~ text
+export BEAKER_PUPPET_COLLECTION=puppet6
+export BEAKER_PUPPET_INSTALL_VERSION=6.4.2
+~~~
+
 Puppet 5.5.1:
 
 ~~~ text
@@ -469,7 +476,7 @@ Then:
 bundle exec rspec spec/acceptance
 ~~~
 
-Tested using Puppet 4.10.11, 5.5.1 and Ruby 2.4.1.
+Tested using Puppet 4.10.11, 5.5.1, 6.4.2 and Ruby 2.4.1.
 
 ## Donate
 

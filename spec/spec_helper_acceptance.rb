@@ -1,16 +1,16 @@
 # Environment variables:
 #
-#   For Puppet 5.x:
+#   For Puppet 5.x and 6.x:
 #
 #   ENV['BEAKER_PUPPET_COLLECTION']
-#     For Puppet 5 this must be set to 'puppet5'
+#     For Puppet 5 & this must be set to 'puppet5' or 'puppet6'
 #
 #   ENV['BEAKER_PUPPET_AGENT_VERSION']
-#     For Puppet 5, Agent Version == Puppet Version.
+#     Agent Version should == Puppet Version.
 #
 #   Usage example:
 #
-#   BEAKER_PUPPET_COLLECTION=puppet5 BEAKER_PUPPET_INSTALL_VERSION=5.5.1 \
+#   BEAKER_PUPPET_COLLECTION=puppet6 BEAKER_PUPPET_INSTALL_VERSION=6.4.2 \
 #     bundle exec rspec spec/acceptance
 #
 #   For Puppet 4.x:
@@ -27,10 +27,6 @@
 #
 #   BEAKER_PUPPET_COLLECTION=pc1 BEAKER_PUPPET_INSTALL_VERSION=1.10.12 \
 #     bundle exec rspec spec/acceptance
-#
-#   For Puppet 3.x
-#
-#   TODO. Not tested. Try PUPPET_INSTALL_TYPE=foss based on docs.
 #
 #   Other variables:
 #
