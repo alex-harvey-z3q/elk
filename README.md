@@ -5,12 +5,13 @@
 ## Table of Contents
 
 1. [Motivation](#motivation)
-2. [Support](#support)
-3. [Architecture](#architecture)
-4. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
-5. [Reference](#reference)
-6. [Testing](#testing)
-7. [Donate](#donate)
+1. [Latest version](#latest-version)
+1. [Support](#support)
+1. [Architecture](#architecture)
+1. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
+1. [Reference](#reference)
+1. [Testing](#testing)
+1. [Donate](#donate)
 
 ## Motivation
 
@@ -19,6 +20,17 @@ This project is intended to solve a variety of problems:
 * A convenient fully-automated moderately-opinionated out-of-the-box latest-version highly-available ELK solution in Puppet.
 * An ELK cluster that spins up conveniently on a single node for development and testing in ELK.
 * A demonstration of a complex Puppet Control Repo, Roles & Profiles design with automated testing in Rspec-puppet and Beaker.
+
+## Latest version
+
+Last tested against:
+
+- ELK 6.8.0
+- Elasticsearch Curator 5.7.6
+- java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64
+- Redis 3.2.12
+
+Note that ELK 7 has been released and will be supported here soon!
 
 ## Support
 
