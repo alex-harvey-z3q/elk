@@ -140,7 +140,7 @@ profile::base::yum::repos:
     enabled: 1
     failovermethod: priority
     gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
     baseurl: http://download.fedoraproject.org/pub/epel/7/$basearch
   'epel-debuginfo':
@@ -149,7 +149,7 @@ profile::base::yum::repos:
     enabled: 0
     failovermethod: priority
     gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch
     baseurl: http://download.fedoraproject.org/pub/epel/7/$basearch/debug
   'epel-source':
@@ -158,7 +158,7 @@ profile::base::yum::repos:
     enabled: 0
     failovermethod: priority
     gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch
     baseurl: http://download.fedoraproject.org/pub/epel/7/SRPMS
   'epel-testing':
@@ -167,7 +167,7 @@ profile::base::yum::repos:
     enabled: 0
     failovermethod: priority
     gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=testing-epel7&arch=$basearch
     baseurl: http://download.fedoraproject.org/pub/epel/testing/7/$basearch
   'epel-testing-debuginfo':
@@ -176,7 +176,7 @@ profile::base::yum::repos:
     enabled: 0
     failovermethod: priority
     gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel7&arch=$basearch
     baseurl: http://download.fedoraproject.org/pub/epel/testing/7/$basearch/debug
   'epel-testing-source':
@@ -185,14 +185,14 @@ profile::base::yum::repos:
     enabled: 0
     failovermethod: priority
     gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel7&arch=$basearch
     baseurl: http://download.fedoraproject.org/pub/epel/testing/7/$basearch/SRPMS
   'extras':
     ensure: present
     descr: CentOS-$releasever - Extras
     gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
     #mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras&infra=$infra
     baseurl: http://mirror.centos.org/centos/$releasever/extras/$basearch/
   'extras-source':
@@ -201,7 +201,7 @@ profile::base::yum::repos:
     descr: CentOS-$releasever - Extras Sources
     enabled: 0
     gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+    gpgkey: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
   'fasttrack':
     ensure: present
     descr: CentOS-7 - fasttrack
