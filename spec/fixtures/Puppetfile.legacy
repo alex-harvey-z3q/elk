@@ -6,7 +6,7 @@ forge 'https://forgeapi.puppetlabs.com'
 #
 # To try reinstalling:
 #   rm -f spec/fixtures/Puppetfile.lock ; LIBRARIAN_VERBOSE=true \
-#     bundle exec rake generate_puppetfile librarian_spec_prep 
+#     bundle exec rake generate_puppetfile librarian_spec_prep
 
 mod 'puppetlabs/stdlib', '< 6.0.0'
 
@@ -57,4 +57,4 @@ mod 'richardc/datacat'
 #mod 'puppetlabs/powershell'
 
 # Dependencies of puppet/nginx
-mod 'puppetlabs/concat'
+mod 'puppetlabs/concat', '< 6.0.0'
