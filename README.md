@@ -468,11 +468,11 @@ export BEAKER_PUPPET_COLLECTION=puppet6
 export BEAKER_PUPPET_INSTALL_VERSION=6.4.2
 ~~~
 
-Puppet 5.5.1:
+Puppet 5.5.14:
 
 ~~~ text
 export BEAKER_PUPPET_COLLECTION=puppet5
-export BEAKER_PUPPET_INSTALL_VERSION=5.5.1
+export BEAKER_PUPPET_INSTALL_VERSION=5.5.14
 ~~~
 
 Puppet 4.10.11:
@@ -488,10 +488,12 @@ Then:
 bundle exec rspec spec/acceptance
 ~~~
 
-Tested using Puppet 4.10.11, 5.5.1, 6.4.2 and Ruby 2.4.1.
+Tested using Puppet 4.10.11, 5.5.14, 6.4.2 and Ruby 2.4.1.
 
 ## Donate
 
 If you find that this code saved your project some significant time, consider donating:
 
 [![paypal](https://www.paypalobjects.com/en_AU/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6849RBYT6VYBQ)
+
+Also, please add a star if you find it useful!
