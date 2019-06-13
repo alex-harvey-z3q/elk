@@ -29,7 +29,7 @@ RSpec.configure do |c|
     :operatingsystem => 'RedHat',
     :operatingsystemmajrelease => '7',
     :operatingsystemrelease    => '7.2.1511',
-    :os => {'family' => 'RedHat'},
+    :os => {'family' => 'RedHat', 'release' => {'major' => '7', 'minor' => '1', 'full' => '7.1.1503'}},
     :osfamily        => 'RedHat',
     :path            => ['/bin', '/usr/bin'],
     :puppetversion   => '5.5.1',
