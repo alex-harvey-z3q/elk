@@ -122,3 +122,9 @@ task :clean_puppet_6 do
   modules = ['yum','mount','cron','augeas']
   modules.map { |x| FileUtils::rm_rf Dir.glob("spec/fixtures/modules/#{x}*") }
 end
+
+desc "Clean all modules and lock file"
+task :clean_all do
+  Dir.glob("spec/fixtures/modules/*").each { |x| FileUtils::rm_rf x }
+  FileUtils::rm 'spec/fixtures/Puppetfile.lock'
+end
