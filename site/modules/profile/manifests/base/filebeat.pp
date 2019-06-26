@@ -3,8 +3,8 @@ class profile::base::filebeat (
 ) {
   include filebeat
 
-  filebeat::prospector { 'syslogs':
-    paths => $paths,
+  filebeat::input { 'syslogs':
+    paths    => $paths,
     doc_type => 'syslog-beat',
   }
 }
