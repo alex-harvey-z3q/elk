@@ -120,7 +120,7 @@ end
 desc "Clean Puppet 6-only modules"
 task :clean_puppet_6 do
   modules = ['yum','mount','cron','augeas']
-  modules.map { |x| FileUtils::rm_rf Dir.glob("spec/fixtures/modules/#{x}*") }
+  modules.map { |x| FileUtils::rm_rf "spec/fixtures/modules/#{x}*" }
 end
 
 desc "Clean all modules and lock file"
