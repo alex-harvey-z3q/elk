@@ -45,7 +45,6 @@ describe 'role::elk_stack' do
     context 'log files' do
       describe file('/var/log/filebeat/filebeat') do
         its(:content) { should match /filebeat start running/ }
-        its(:content) { should match /DEPRECATED: config.prospectors are deprecated, Use.*config.inputs/ } # FIXME.
       end
     end
 
