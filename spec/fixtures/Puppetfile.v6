@@ -30,9 +30,7 @@ mod 'elastic/kibana'
 mod 'puppet/nginx'
 mod 'camptocamp/archive'
 mod 'thias/sysctl'
-mod 'heini/wait_for',
-  :git => 'https://github.com/heini/puppet-wait-for.git',
-  :branch => 'alexharvey/max_retries_broken'
+mod 'heini/wait_for'
 
 # Needed for Puppet 6.
 mod 'puppetlabs/yumrepo_core'
