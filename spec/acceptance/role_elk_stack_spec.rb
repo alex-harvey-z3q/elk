@@ -1,7 +1,8 @@
 require 'spec_helper_acceptance'
 
-elk_version = '6.8.3'
-openjdk = 'java-1.8.0-openjdk-1.8.0.222.b10-0.el7_6.x86_64'
+elk_version = '6.8.4'
+curator_version = '5.8.1'
+openjdk = 'java-1.8.0-openjdk-1.8.0.232.b09-0.el7_7.x86_64'
 
 pp = <<-EOS
 stage { 'pre': before => Stage['main'] }
@@ -196,7 +197,7 @@ describe 'role::elk_stack' do
        ['java-1.8.0-openjdk',          '1.8.0'],
        ['java-1.8.0-openjdk-headless', '1.8.0'],
        ['elasticsearch',               elk_version],
-       ['elasticsearch-curator',       '5.7.6'],
+       ['elasticsearch-curator',       curator_version],
 
       ].each do |package, version|
 
