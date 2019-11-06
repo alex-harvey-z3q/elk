@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+1. [ELK 7 status](#elk-7-status)
 1. [Motivation](#motivation)
 1. [Latest version](#latest-version)
 1. [Support](#support)
@@ -12,6 +13,10 @@
 1. [Reference](#reference)
 1. [Testing](#testing)
 1. [Donate](#donate)
+
+## ELK 7 status
+
+Update 6 November 2019. At this time the upstream Elastic Puppet modules still do not support ELK 7. If you would like ELK 7 support here, consider upvoting [this](https://github.com/elastic/puppet-elasticsearch/issues/1037) issue. I will add ELK 7 support here as soon as I am able to.
 
 ## Motivation
 
