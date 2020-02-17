@@ -2,17 +2,33 @@
 
 [![Build Status](https://img.shields.io/travis/alexharv074/elk.svg)](https://travis-ci.org/alexharv074/elk)
 
-## Table of Contents
+#### Table of contents
 
 1. [ELK 7 status](#elk-7-status)
-1. [Motivation](#motivation)
-1. [Latest version](#latest-version)
-1. [Support](#support)
-1. [Architecture](#architecture)
-1. [About Librarian-puppet & g10k](#about-librarian-puppetg10k)
-1. [Reference](#reference)
-1. [Testing](#testing)
-1. [Donate](#donate)
+2. [Motivation](#motivation)
+3. [Latest version](#latest-version)
+4. [Support](#support)
+5. [Architecture](#architecture)
+6. [About Librarian-puppet & g10k](#about-librarian-puppet--g10k)
+7. [Setup](#setup)
+    * [Quickly build an ELK cluster in Vagrant for development and testing](#quickly-build-an-elk-cluster-in-vagrant-for-development-and-testing)
+        - [Dependencies](#dependencies)
+        - [Squid Man set up](#squid-man-set-up)
+        - [Clone this project](#clone-this-project)
+        - [Install dependencies with Bundler](#install-dependencies-with-bundler)
+        - [Build the Vagrant box](#build-the-vagrant-box)
+8. [Reference](#reference)
+    * [Note about examples](#note-about-examples)
+    * [Roles](#roles)
+        - [Public Classes](#public-classes)
+    * [Profiles](#profiles)
+        - [Public Classes](#public-classes)
+        - [Private Classes](#private-classes)
+9. [Testing](#testing)
+    * [Dependencies](#dependencies)
+    * [Squid Man set up](#squid-man-set-up)
+    * [Run the tests](#run-the-tests)
+10. [Donate](#donate)
 
 ## ELK 7 status
 
