@@ -1,7 +1,63 @@
+---
 fixtures:
-  # repositories:
-  # repositories is empty because we use librarian-puppet
-  # and this is called from the Rakefile.
+  forge_modules:
+    stdlib:
+      repo: puppetlabs/stdlib
+      ref: 9.7.0
+    lvm:
+      repo: puppetlabs/lvm
+      ref: 2.3.0
+    firewall:
+      repo: puppetlabs/firewall
+      ref: 7.0.2
+    java:
+      repo: puppetlabs/java
+      ref: 11.1.0
+    java_ks:
+      repo: puppetlabs/java_ks
+      ref: 5.1.0
+    concat:
+      repo: puppetlabs/concat
+      ref: 9.0.0
+    apt:
+      repo: puppetlabs/apt
+      ref: 10.0.1
+    augeas_core:
+      repo: puppetlabs/augeas_core
+      ref: 1.0.5
+    mount_core:
+      repo: puppetlabs/mount_core
+      ref: 1.2.0
+    yumrepo_core:
+      repo: puppetlabs/yumrepo_core
+      ref: 3.0.1
+    augeasproviders_core:
+      repo: puppet/augeasproviders_core
+      ref: 4.0.0
+    augeasproviders_sysctl:
+      repo: puppet/augeasproviders_sysctl
+      ref: 4.0.0
+    yum:
+      repo: puppet/yum
+      ref: 7.0.0
+    nginx:
+      repo: puppet/nginx
+      ref: 7.0.0
+    elastic_stack:
+      repo: puppet/elastic_stack
+      ref: 10.0.0
+    elasticsearch:
+      repo: puppet/elasticsearch
+      ref: 10.0.0
+    logstash:
+      repo: puppet/logstash
+      ref: 9.0.0
+    kibana:
+      repo: puppet/kibana
+      ref: 9.0.0
+    firewall_multi:
+      repo: alexharvey/firewall_multi
+      ref: 8.0.1
   symlinks:
     'role': "#{source_dir}/site/modules/role"
     'profile': "#{source_dir}/site/modules/profile"

@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'json'
 require 'puppet/file_serving'
 
 describe 'role::elk_stack' do
@@ -38,7 +39,7 @@ describe 'role::elk_stack' do
     is_expected.to compile.with_all_deps
     File.write(
       'catalogs/role__elk_stack.json',
-      PSON.pretty_generate(catalogue)
+      JSON.pretty_generate(catalogue.to_data_hash)
     )
   end
 end

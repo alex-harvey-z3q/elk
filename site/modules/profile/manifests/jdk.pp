@@ -1,5 +1,5 @@
 class profile::jdk (
-  Pattern[/java-\d+\.\d+\.\d+-openjdk/] $package, #/ # comment tricks vim highlighting.
+  String[1] $package,
 ) {
   package { $package:
     ensure => installed,

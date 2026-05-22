@@ -1,11 +1,12 @@
 {
   "index_patterns": ["logstash-*"],
+  "template": {
   "settings": {
-    "index.refresh_interval": "5s",
-    "index.number_of_replicas": "0"
+      "index.refresh_interval": "5s",
+      "index.number_of_replicas": "0",
+      "index.lifecycle.name": "logstash-lab"
   },
   "mappings": {
-    "_default_": {
       "dynamic_templates": [
         {
           "message_field": {

@@ -14,12 +14,11 @@ class profile::elasticsearch::data_node (
 
   # Optional params.
   Hash                     $config                  = {},
-  Hash                     $init_defaults           = {},
   Hash                     $es_plugins              = {},
-  Hash                     $curator_jobs            = {},
   Array[Pattern[/^-/]]     $jvm_options             = [],
   Integer[0,1]             $vm_swappiness           = undef,
   Integer                  $vm_max_map_count        = undef,
+  Hash                     $ilm_policies            = {},
 
   # ES templates.
   Hash[String, Struct[{
@@ -31,8 +30,8 @@ class profile::elasticsearch::data_node (
   # Users of this profile should always allow this class to configure ES as a
   # data node.
   #
-  if has_key($config, 'node.data') {
-    fail("Do not specify node.data in ${module_name}")
+  if 'node.roles' in $config {
+    fail("Do not specify node.roles in ${module_name}")
   }
 
   unless length($volume_groups) == 1 {
@@ -47,31 +46,22 @@ class profile::elasticsearch::data_node (
   create_resources(firewall_multi, $firewall_multis)
   create_resources(lvm::volume_group, $volume_groups)
 
-  include elasticsearch
   include profile::elasticsearch
 
-  $cluster_name = $config['cluster.name']
-
-  elasticsearch::instance { $cluster_name:
-    config        => merge($config, {'node.data' => true}),
-    datadir       => $datadir,
-    init_defaults => $init_defaults,
-    jvm_options   => $jvm_options,
+  class { 'elasticsearch':
+    config      => merge($config, {'node.roles' => ['master', 'data', 'ingest']}),
+    datadir     => $datadir,
+    jvm_options => $jvm_options,
   }
+
   Mount[$datadir] -> File[$datadir]
 
   create_resources(elasticsearch::template, $es_templates)
   create_resources(elasticsearch::plugin, $es_plugins)
-
-  unless empty($curator_jobs) {
-    package { 'elastic-curator':
-      ensure => installed,
-    }
-    create_resources(cron, $curator_jobs)
-  }
+  create_resources(elasticsearch::ilm_policy, $ilm_policies)
 
   Sysctl {
-    before => Service["elasticsearch-instance-${cluster_name}"]
+    before => Service['elasticsearch']
   }
 
   if $vm_swappiness {

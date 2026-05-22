@@ -19,6 +19,5 @@ class profile::elasticsearch (
     shell      => '/sbin/nologin',
     managehome => false,
   }
-  include elasticsearch
   User['elasticsearch'] -> Package['elasticsearch']
 }

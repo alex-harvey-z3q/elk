@@ -1,0 +1,11 @@
+<%- | Array[String[1]] $output_hosts | -%>
+# MANAGED BY PUPPET
+filebeat.config.inputs:
+  enabled: true
+  path: ${path.config}/inputs.d/*.yml
+
+output.logstash:
+  hosts:
+<% $output_hosts.each |$host| { -%>
+    - "<%= $host %>"
+<% } -%>

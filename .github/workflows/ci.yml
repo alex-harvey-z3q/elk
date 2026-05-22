@@ -1,0 +1,26 @@
+---
+name: CI
+
+"on":
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    env:
+      PUPPET_GEM_VERSION: "~> 8.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+      - run: bundle exec rake lint
+      - run: bundle exec rake spec_prep
+      - run: bundle exec rake spec
+      - run: python -m pip install yamllint
+      - run: yamllint -c yamllint.yml spec/fixtures/hiera.yaml spec/fixtures/hiera.yaml.beaker spec/fixtures/hieradata/common.yaml spec/acceptance/nodesets/default.yml .github/workflows/ci.yml .fixtures.yml

@@ -1,39 +1,5 @@
 # Environment variables:
 #
-#   For Puppet 5.x:
-#
-#   ENV['BEAKER_PUPPET_COLLECTION']
-#     For Puppet 5 this must be set to 'puppet5'
-#
-#   ENV['BEAKER_PUPPET_AGENT_VERSION']
-#     For Puppet 5, Agent Version == Puppet Version.
-#
-#   Usage example:
-#
-#   BEAKER_PUPPET_COLLECTION=puppet5 BEAKER_PUPPET_INSTALL_VERSION=5.5.1 \
-#     bundle exec rspec spec/acceptance
-#
-#   For Puppet 4.x:
-#
-#   ENV['BEAKER_PUPPET_COLLECTION']
-#     For Puppet 4 this must be set to 'pc1'
-#
-#   ENV['BEAKER_PUPPET_AGENT_VERSION']
-#     For Puppet 4, Agent Version != Puppet Version. The conversion is
-#     documented here:
-#       https://puppet.com/docs/puppet/4.10/about_agent.html
-#
-#   Usage example (for Puppet 4.10.12):
-#
-#   BEAKER_PUPPET_COLLECTION=pc1 BEAKER_PUPPET_INSTALL_VERSION=1.10.12 \
-#     bundle exec rspec spec/acceptance
-#
-#   For Puppet 3.x
-#
-#   TODO. Not tested. Try PUPPET_INSTALL_TYPE=foss based on docs.
-#
-#   Other variables:
-#
 #   ENV['BEAKER_destroy']
 #     If set to 'no' Beaker will not tear down the Vagrant VM after the
 #     tests run.  Use this if you want the VM to keep running for 
@@ -106,10 +72,8 @@ RSpec.configure do |c|
       :target => '/etc/facter',
     })
 
-    # https://tickets.puppetlabs.com/browse/MODULES-3153
-    # https://tickets.puppetlabs.com/browse/MODULES-3184
-    on host, 'yum -y install iptables-services'
-    on host, 'systemctl start iptables.service'
-    on host, 'systemctl start ip6tables.service'
+    on host, 'dnf -y install iptables-services'
+    on host, 'systemctl enable --now iptables.service'
+    on host, 'systemctl enable --now ip6tables.service'
   end
 end

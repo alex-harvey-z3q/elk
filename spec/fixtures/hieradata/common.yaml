@@ -1,340 +1,63 @@
 ---
 
+# Lab target: Puppet 8 on a current EL-family host, with Elastic Stack 8.
+
+elastic_stack::repo::version: 8
+
 # profile::base
-#
-ntp::servers:
-  - 0.au.pool.ntp.org
-  - 1.au.pool.ntp.org
-  - 2.au.pool.ntp.org
-  - 3.au.pool.ntp.org
-ntp::restrict:
-  - default kod nomodify notrap nopeer noquery
-  - -6 default kod nomodify notrap nopeer noquery
-
-profile::base::yum::repos:
-  'C7.0.1406-base':
-    ensure: present
-    baseurl: http://vault.centos.org/7.0.1406/os/$basearch/
-    descr: CentOS-7.0.1406 - Base
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.0.1406-centosplus':
-    ensure: present
-    baseurl: http://vault.centos.org/7.0.1406/centosplus/$basearch/
-    descr: CentOS-7.0.1406 - CentOSPlus
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.0.1406-extras':
-    ensure: present
-    baseurl: http://vault.centos.org/7.0.1406/extras/$basearch/
-    descr: CentOS-7.0.1406 - Extras
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.0.1406-fasttrack':
-    ensure: present
-    baseurl: http://vault.centos.org/7.0.1406/fasttrack/$basearch/
-    descr: CentOS-7.0.1406 - CentOSPlus
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.0.1406-updates':
-    ensure: present
-    baseurl: http://vault.centos.org/7.0.1406/updates/$basearch/
-    descr: CentOS-7.0.1406 - Updates
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.1.1503-base':
-    ensure: present
-    baseurl: http://vault.centos.org/7.1.1503/os/$basearch/
-    descr: CentOS-7.1.1503 - Base
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.1.1503-centosplus':
-    ensure: present
-    baseurl: http://vault.centos.org/7.1.1503/centosplus/$basearch/
-    descr: CentOS-7.1.1503 - CentOSPlus
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.1.1503-extras':
-    ensure: present
-    baseurl: http://vault.centos.org/7.1.1503/extras/$basearch/
-    descr: CentOS-7.1.1503 - Extras
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.1.1503-fasttrack':
-    ensure: present
-    baseurl: http://vault.centos.org/7.1.1503/fasttrack/$basearch/
-    descr: CentOS-7.1.1503 - CentOSPlus
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'C7.1.1503-updates':
-    ensure: present
-    baseurl: http://vault.centos.org/7.1.1503/updates/$basearch/
-    descr: CentOS-7.1.1503 - Updates
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'base':
-    ensure: present
-    descr: CentOS-$releasever - Base
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-    #mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra
-    baseurl: http://mirror.centos.org/centos/$releasever/os/$basearch/
-  'base-debuginfo':
-    ensure: present
-    baseurl: http://debuginfo.centos.org/7/$basearch/
-    descr: CentOS-7 - Debuginfo
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-Debug-7
-  'base-source':
-    ensure: present
-    baseurl: http://vault.centos.org/centos/$releasever/os/Source/
-    descr: CentOS-$releasever - Base Sources
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'c7-media':
-    ensure: present
-    baseurl: 'file:///media/CentOS/
-          file:///media/cdrom/
-          file:///media/cdrecorder/'
-    descr: CentOS-$releasever - Media
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'centosplus':
-    ensure: present
-    descr: CentOS-$releasever - Plus
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-    #mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=centosplus&infra=$infra
-    baseurl: http://mirror.centos.org/centos/$releasever/centosplus/$basearch/
-  'centosplus-source':
-    ensure: present
-    baseurl: http://vault.centos.org/centos/$releasever/centosplus/Source/
-    descr: CentOS-$releasever - Plus Sources
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'cr':
-    ensure: present
-    baseurl: http://mirror.centos.org/centos/$releasever/cr/$basearch/
-    descr: CentOS-$releasever - cr
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'epel':
-    ensure: present
-    descr: Extra Packages for Enterprise Linux 7 - $basearch
-    enabled: 1
-    failovermethod: priority
-    gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
-    #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
-    baseurl: http://download.fedoraproject.org/pub/epel/7/$basearch
-  'epel-debuginfo':
-    ensure: present
-    descr: Extra Packages for Enterprise Linux 7 - $basearch - Debug
-    enabled: 0
-    failovermethod: priority
-    gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
-    #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch
-    baseurl: http://download.fedoraproject.org/pub/epel/7/$basearch/debug
-  'epel-source':
-    ensure: present
-    descr: Extra Packages for Enterprise Linux 7 - $basearch - Source
-    enabled: 0
-    failovermethod: priority
-    gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
-    #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch
-    baseurl: http://download.fedoraproject.org/pub/epel/7/SRPMS
-  'epel-testing':
-    ensure: present
-    descr: Extra Packages for Enterprise Linux 7 - Testing - $basearch
-    enabled: 0
-    failovermethod: priority
-    gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
-    #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=testing-epel7&arch=$basearch
-    baseurl: http://download.fedoraproject.org/pub/epel/testing/7/$basearch
-  'epel-testing-debuginfo':
-    ensure: present
-    descr: Extra Packages for Enterprise Linux 7 - Testing - $basearch - Debug
-    enabled: 0
-    failovermethod: priority
-    gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
-    #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=testing-debug-epel7&arch=$basearch
-    baseurl: http://download.fedoraproject.org/pub/epel/testing/7/$basearch/debug
-  'epel-testing-source':
-    ensure: present
-    descr: Extra Packages for Enterprise Linux 7 - Testing - $basearch - Source
-    enabled: 0
-    failovermethod: priority
-    gpgcheck: 1
-    gpgkey: https://getfedora.org/static/352C64E5.txt
-    #mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=testing-source-epel7&arch=$basearch
-    baseurl: http://download.fedoraproject.org/pub/epel/testing/7/$basearch/SRPMS
-  'extras':
-    ensure: present
-    descr: CentOS-$releasever - Extras
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-    #mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras&infra=$infra
-    baseurl: http://mirror.centos.org/centos/$releasever/extras/$basearch/
-  'extras-source':
-    ensure: present
-    baseurl: http://vault.centos.org/centos/$releasever/extras/Source/
-    descr: CentOS-$releasever - Extras Sources
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'fasttrack':
-    ensure: present
-    descr: CentOS-7 - fasttrack
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-    #mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=fasttrack&infra=$infra
-    baseurl: http://mirror.centos.org/centos/$releasever/fasttrack/$basearch/
-  'updates':
-    ensure: present
-    descr: CentOS-$releasever - Updates
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-    #mirrorlist: http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates&infra=$infra
-    baseurl: http://mirror.centos.org/centos/$releasever/updates/$basearch/
-  'updates-source':
-    ensure: present
-    baseurl: http://vault.centos.org/centos/$releasever/updates/Source/
-    descr: CentOS-$releasever - Updates Sources
-    enabled: 0
-    gpgcheck: 1
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-  'nginx-release':
-    descr: nginx repo
-    baseurl: http://nginx.org/packages/centos/7/$basearch/
-    gpgcheck: 1
-    gpgkey: http://nginx.org/keys/nginx_signing.key
-    enabled: 1
-  'ELK-6.x':
-    descr: elasticsearch repo
-    baseurl: https://artifacts.elastic.co/packages/6.x/yum
-    gpgcheck: 1
-    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
-    enabled: 1
-
+profile::base::yum::repos: {}
 profile::base::firewall_multis:
-  '00099 accept tcp ports for SSH and Kibana':
+  '00099 accept tcp ports for SSH, Kibana, Elasticsearch and Beats':
     dport:
       - 22
       - 80
+      - 5044
       - 5601
-    action: accept
+      - 9200
+    jump: accept
     proto: tcp
     source:
       - 0.0.0.0/0
-
-# profile::base::filebeat
-#
-filebeat::manage_repo: false
-filebeat::package_ensure: latest
-filebeat::major_version: '6' # Must be a String.
-filebeat::outputs:
-  logstash:
-    hosts:
-      - 0.0.0.0:5044
-    loadbalance: false
-
-profile::base::filebeat::paths:
-  - /var/log/messages
-  - /var/log/testlog
-
 profile::base::tools:
   vim:
     ensure: installed
 
+# profile::base::filebeat
+profile::base::filebeat::package_ensure: present
+profile::base::filebeat::output_hosts:
+  - localhost:5044
+profile::base::filebeat::paths:
+  - /var/log/messages
+  - /var/log/testlog
+
 # profile::jdk
-#
-profile::jdk::package: java-1.8.0-openjdk
+profile::jdk::package: java-17-openjdk-headless
 
 # profile::logstash
-#
 profile::logstash::uid: 30001
 profile::logstash::gid: 30001
-
-# NOTE: concerning the heap sizes:
-# test VM has 8G so:
-# 1g for LS shipper heap
-# 1g for LS indexer heap
-# 500m for Redis
-# 1g for ES heap
-# leaving ~ 4G for OS.
-
 profile::logstash::firewall_multis: {}
-
 logstash::manage_repo: false
 logstash::jvm_options:
   - -Xms1g
   - -Xmx1g
 logstash::pipelines:
-  - 'pipeline.id': shipper
-    'path.config': /etc/logstash/conf.d/shipper.conf
-  - 'pipeline.id': indexer
-    'path.config': /etc/logstash/conf.d/indexer.conf
-
+  - 'pipeline.id': main
+    'path.config': /etc/logstash/conf.d/main.conf
 profile::logstash::configfiles:
-  'shipper.conf':
-    source: puppet:///modules/profile/logstash/conf.d/shipper.conf
-    path: /etc/logstash/conf.d/shipper.conf
-  'indexer.conf':
-    source: puppet:///modules/profile/logstash/conf.d/indexer.conf
-    path: /etc/logstash/conf.d/indexer.conf
-
+  'main.conf':
+    source: puppet:///modules/profile/logstash/conf.d/main.conf
+    path: /etc/logstash/conf.d/main.conf
 profile::logstash::patternfiles: {}
 
-# profile::redis
-#
-redis::workdir: /var/lib/redis
-redis::maxmemory: 16gb
-
-profile::redis::firewall_multis: {}
-profile::redis::volume_groups:
-  redisvg00:
-    physical_volumes:
-      - "%{facts.redispv}"
-    logical_volumes:
-      redislv00:
-        mountpath: "%{lookup('redis::workdir')}"
-profile::redis::uid: 30003
-profile::redis::gid: 30003
-profile::redis::vm_overcommit_memory: 1
-profile::redis::net_core_somaxconn: 1024
-
 # profile::elasticsearch
-#
-elasticsearch::api_host: 0.0.0.0
+elasticsearch::api_host: localhost
 elasticsearch::api_timeout: 120
 elasticsearch::manage_repo: false
-
 profile::elasticsearch::uid: 30000
 profile::elasticsearch::gid: 30000
 
 # profile::elasticsearch::data_node
-#
 profile::elasticsearch::data_node::firewall_multis: {}
 profile::elasticsearch::data_node::datadir: /srv/es
 profile::elasticsearch::data_node::volume_groups:
@@ -347,64 +70,48 @@ profile::elasticsearch::data_node::volume_groups:
 profile::elasticsearch::data_node::config:
   'cluster.name': es01
   'node.name': "es01_%{facts.hostname}"
-  'node.master': true
-profile::elasticsearch::data_node::init_defaults:
-  JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.181-3.b13.el7_5.x86_64
+  'network.host': 0.0.0.0
+  'http.port': 9200
+  'discovery.type': single-node
+  'xpack.security.enabled': false
 profile::elasticsearch::data_node::es_plugins: {}
-profile::elasticsearch::data_node::curator_jobs:
-  curator_delete:
-    command: /usr/bin/curator --master-only --logfile /var/log/elasticsearch/curator.log delete --older-than 20
-    hour: 2
-    minute: 12
-  curator_close:
-    command: /usr/bin/curator --master-only --logfile /var/log/elasticsearch/curator.log close --older-than 10
-    hour: 2
-    minute: 24
-  curator_bloom:
-    command: /usr/bin/curator --master-only --logfile /var/log/elasticsearch/curator.log bloom --older-than 2
-    hour: 2
-    minute: 32
 profile::elasticsearch::data_node::jvm_options:
   - -Xms1g
   - -Xmx1g
   - "-XX:HeapDumpPath=%{lookup('profile::elasticsearch::data_node::datadir')}"
 profile::elasticsearch::data_node::vm_swappiness: 1
 profile::elasticsearch::data_node::vm_max_map_count: 262144
-
-# see comments on https://www.coredump.id.au/inability-to-create-new-logstash-indexes-in-elasticsearch-2-0/#comments
+profile::elasticsearch::data_node::ilm_policies:
+  logstash-lab:
+    content:
+      policy:
+        phases:
+          hot:
+            actions: {}
+          delete:
+            min_age: 20d
+            actions:
+              delete: {}
 profile::elasticsearch::data_node::es_templates:
-  logstash:
+  logstash-lab:
     source: puppet:///modules/profile/logstash/logstash.json
 
-# profile::elasticsearch::coordinating_node
-#
-profile::elasticsearch::coordinating_node::firewall_multis: {}
-profile::elasticsearch::coordinating_node::config:
-  'cluster.name': es01
-  'node.name': "es01_coordinating_%{facts.hostname}"
-profile::elasticsearch::coordinating_node::init_defaults:
-  JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-0.b17.el6_7.x86_64
-  ES_JAVA_OPTS: '"-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -Xloggc:/var/log/elasticsearch/es01-coordinating-instance/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M"'
-
 # profile::kibana
-#
-kibana::ensure: latest
+kibana::ensure: present
 kibana::manage_repo: false
 kibana::config:
   'server.host': 0.0.0.0
   'server.port': 5601
-  'elasticsearch.url': http://0.0.0.0:9201  # 9201 by default on a single VM because 9200 is taken by the ES data node instance.
-
+  'elasticsearch.hosts':
+    - http://localhost:9200
 profile::kibana::firewall_multis: {}
 profile::kibana::uid: 30002
 profile::kibana::gid: 30002
 
 # profile::nginx
-#
 nginx::manage_repo: false
-
 profile::nginx::firewall_multis: {}
-profile::nginx::backend_host: 0.0.0.0
+profile::nginx::backend_host: 127.0.0.1
 profile::nginx::backend_port: 5601
 profile::nginx::uid: 30004
 profile::nginx::gid: 30004

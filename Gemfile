@@ -1,32 +1,18 @@
 source 'https://rubygems.org'
 
-group :development do
-  gem 'pry'
-  gem 'pry-rescue'
-  gem 'pry-stack_explorer'
-  gem 'debug_inspector', '<= 0.0.2'
-  gem 'hashdiff'
-  gem 'awesome_print'
-end
+ruby '>= 3.0'
 
 group :tests do
-  gem 'puppetlabs_spec_helper'
-  gem 'librarian-puppet'
-  gem 'versionomy'
+  gem 'metadata-json-lint', '~> 5.0'
+  gem 'puppet-lint', '~> 4.0'
+  gem 'puppetlabs_spec_helper', '~> 8.0'
+  gem 'rspec-puppet', '~> 5.0'
 end
 
 group :system_tests do
-  gem 'beaker'
-  gem 'beaker-rspec'
-  gem 'beaker-puppet_install_helper'
-  gem 'beaker-vagrant'
-  gem 'beaker-pe'
+  gem 'puppet_litmus', '~> 2.5'
+  gem 'serverspec', '~> 2.0'
 end
 
-gem 'facter'
-
-if puppetversion = ENV['PUPPET_GEM_VERSION']
-  gem 'puppet', puppetversion
-else
-  gem 'puppet'
-end
+gem 'facter', '>= 4.0', '< 5.0'
+gem 'puppet', ENV.fetch('PUPPET_GEM_VERSION', '~> 8.0')

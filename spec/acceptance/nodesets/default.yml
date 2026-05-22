@@ -1,8 +1,8 @@
 ---
 HOSTS:
-  centos-72-x64:
-    platform: el-7-x86_64
-    box: puppetlabs/centos-7.2-64-nocm
+  rocky-9-x64:
+    platform: el-9-x86_64
+    box: generic/rocky9
     hypervisor: vagrant
     ip: 10.10.2.15
     vagrant_memsize: 8192

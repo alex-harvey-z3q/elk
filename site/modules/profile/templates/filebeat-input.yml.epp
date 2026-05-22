@@ -1,0 +1,11 @@
+<%- | Array[Stdlib::Absolutepath] $paths | -%>
+# MANAGED BY PUPPET
+- type: filestream
+  id: syslogs
+  enabled: true
+  paths:
+<% $paths.each |$path| { -%>
+    - "<%= $path %>"
+<% } -%>
+  fields:
+    log_source: syslog
