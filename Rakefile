@@ -2,7 +2,6 @@ require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet_litmus/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
 require 'fileutils'
-require 'shellwords'
 require 'tmpdir'
 
 Rake::Task[:lint].clear
@@ -30,7 +29,7 @@ YAML_LINT_FILES = [
 
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
-  sh(['yamllint', '-c', 'yamllint.yml', *YAML_LINT_FILES].shelljoin)
+  sh('yamllint', '-c', 'yamllint.yml', *YAML_LINT_FILES)
 end
 
 Rake::Task[:lint].enhance([:yaml_lint])
@@ -60,6 +59,10 @@ def azure_one_node_parameters_file
   ENV.fetch('AZURE_ONE_NODE_PARAMETERS_FILE', 'infra/azure-one-node/main.bicepparam')
 end
 
+def azure_one_node_cloud_init_file
+  ENV.fetch('AZURE_ONE_NODE_CLOUD_INIT_FILE', 'infra/azure-one-node/cloud-init.yaml')
+end
+
 def azure_one_node_deployment_name
   ENV.fetch('AZURE_ONE_NODE_DEPLOYMENT_NAME', 'elk-one-node')
 end
@@ -77,7 +80,11 @@ def azure_one_node_compiled_parameters_file
 end
 
 def azure_cli(*args)
-  sh args.shelljoin
+  sh(*args)
+end
+
+def shell_command(*args)
+  sh(*args)
 end
 
 namespace :azure do
@@ -101,6 +108,23 @@ namespace :azure do
   end
 
   namespace :one_node do
+    desc 'Lint the one-node Azure Bicep template'
+    task :lint do
+      azure_cli(
+        'az', 'bicep', 'lint',
+        '--file', azure_one_node_template_file
+      )
+    end
+
+    desc 'Validate the one-node cloud-init configuration schema'
+    task :cloud_init_schema do
+      shell_command(
+        'cloud-init', 'schema',
+        '-c', azure_one_node_cloud_init_file,
+        '--annotate'
+      )
+    end
+
     desc 'Compile the one-node Azure Bicep template and parameter file'
     task :build do
       FileUtils.mkdir_p(azure_one_node_build_dir)
@@ -115,6 +139,17 @@ namespace :azure do
         '--outfile', azure_one_node_compiled_parameters_file
       )
     end
+
+    desc 'Assert important properties in the compiled one-node Azure template with RSpec'
+    task assert_compiled: [:build] do
+      ENV['RUN_AZURE_STATIC_SPECS'] = 'true'
+      ENV['AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE'] = azure_one_node_compiled_template_file
+      ENV['AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE'] = azure_one_node_compiled_parameters_file
+      sh('bundle', 'exec', 'rspec', 'spec/azure/one_node_compiled_spec.rb')
+    end
+
+    desc 'Run one-node Azure static checks without deploying resources'
+    task static: [:lint, :cloud_init_schema, :assert_compiled]
 
     desc 'Validate the one-node Azure deployment against the target resource group'
     task validate: [:build] do

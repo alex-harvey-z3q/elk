@@ -20,6 +20,8 @@ RSpec.configure do |c|
   c.formatter      = :documentation
   c.mock_framework = :rspec
 
+  c.filter_run_excluding azure_static: true unless ENV['RUN_AZURE_STATIC_SPECS'] == 'true'
+
   c.default_facts   = {
     :concat_basedir  => '/var/lib/puppet/concat',
     :espv            => '/dev/disk/azure/scsi1/lun0',

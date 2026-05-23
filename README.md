@@ -253,10 +253,21 @@ Run syntax, lint, and catalog tests:
 bundle exec rake unit
 ```
 
-Run the Azure Bicep compile check:
+Run the Azure static checks. These lint the Bicep template, validate the
+cloud-init schema, compile the Bicep template and parameter file, and run RSpec
+assertions against the compiled ARM JSON:
 
 ```bash
-bundle exec rake azure:one_node:build
+export LAPTOP_IP=<your-public-ipv4>
+bundle exec rake azure:one_node:static
+```
+
+The Azure static check is equivalent to running these individual checks:
+
+```bash
+bundle exec rake azure:one_node:lint
+bundle exec rake azure:one_node:cloud_init_schema
+bundle exec rake azure:one_node:assert_compiled
 ```
 
 Acceptance tests are intended to run against the Azure VM created by the Bicep
