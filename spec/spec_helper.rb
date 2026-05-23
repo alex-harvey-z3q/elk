@@ -23,6 +23,7 @@ RSpec.configure do |c|
   c.default_facts   = {
     :concat_basedir  => '/var/lib/puppet/concat',
     :espv            => '/dev/disk/azure/scsi1/lun0',
+    :elk_lab_source_cidr => '203.0.113.10/32',
     :id              => '1',
     :is_virtual      => true,
     :kernel          => 'Linux',

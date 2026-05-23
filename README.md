@@ -152,11 +152,8 @@ Azure VM for end-to-end testing on real systemd/package infrastructure.
    +---------------------+                        |
    | Network security    |                        |
    | group               |                        |
-   | SSH :22             |                        |
-   | HTTP :80            |                        |
-   | Beats :5044         |                        |
-   | Kibana :5601        |                        |
-   | Elasticsearch :9200 |                        |
+   | SSH/HTTP/ELK ports  |                        |
+   | from LAPTOP_IP only |                        |
    +----------+----------+                        |
               |                                   |
               v                                   v
@@ -170,23 +167,33 @@ Azure VM for end-to-end testing on real systemd/package infrastructure.
         | one-node ELK stack                            |
         | OS disk + managed data disk at LUN 0          |
         | cloud-init: packages, iptables, vm.max_map    |
-        | external fact: espv=/dev/disk/azure/scsi1/lun0|
+        | facts: espv + elk_lab_source_cidr             |
         | Puppet acceptance target                      |
         +-----------------------------------------------+
 ```
 
 #### Deployment
 
-Before deploying, replace the placeholder SSH key and source CIDRs in
-`infra/azure-one-node/main.bicepparam`. The default image is AlmaLinux 9
-because it is EL9-compatible and available as a straightforward Azure
-Marketplace image; the image publisher, offer, SKU, and version are parameters
-so a Rocky 9 image can be used instead where desired.
+Before deploying, replace the placeholder SSH key in
+`infra/azure-one-node/main.bicepparam` and export `LAPTOP_IP` with your current
+public IPv4 address. The parameter file appends `/32` automatically so the
+Azure NSG and host firewall open only for that single IP.
+
+```bash
+export LAPTOP_IP=<your-public-ipv4>
+```
+
+The default image is AlmaLinux 9 because it is EL9-compatible and available as a
+straightforward Azure Marketplace image; the image publisher, offer, SKU, and
+version are parameters so a Rocky 9 image can be used instead where desired.
 
 The one-node template also attaches a managed data disk at LUN 0. Cloud-init
 publishes that Azure LUN symlink as the `espv` external fact, so
 `profile::elasticsearch::data_node` can build the Elasticsearch LVM volume at
-`/srv/es` without relying on volatile `/dev/sd*` device names.
+`/srv/es` without relying on volatile `/dev/sd*` device names. Cloud-init also
+publishes `elk_lab_source_cidr` from the same `LAPTOP_IP`-derived CIDR used by
+the Azure network security group, so Puppet opens the lab ports only to that
+trusted client on the VM firewall.
 
 Log in to Azure and choose the subscription:
 
@@ -204,10 +211,11 @@ bundle exec rake azure:one_node:deploy
 bundle exec rake azure:one_node:outputs
 ```
 
-The Azure tasks use these environment variables when you want to override the
-common defaults:
+The Azure tasks require `LAPTOP_IP` and use these additional environment
+variables when you want to override the common defaults:
 
 ```bash
+LAPTOP_IP=<your-public-ipv4>
 AZURE_RESOURCE_GROUP=rg-elk-lab
 AZURE_LOCATION=australiaeast
 ```
@@ -270,9 +278,10 @@ profile::elasticsearch::data_node::config:
   'xpack.security.enabled': false
 ```
 
-Do not use that setting for production. A production deployment should manage
-TLS, credentials, Kibana service authentication, snapshots, and lifecycle
-policies explicitly.
+Do not use that setting for production. The lab narrows Azure NSG and host
+iptables access to `LAPTOP_IP`, but Elasticsearch security is still disabled. A
+production deployment should manage TLS, credentials, Kibana service
+authentication, snapshots, and lifecycle policies explicitly.
 
 ## License
 

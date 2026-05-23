@@ -4,6 +4,9 @@ param namePrefix = 'elk-lab'
 param location = 'australiaeast'
 param adminUsername = 'azureuser'
 param adminSshPublicKey = 'ssh-rsa REPLACE_WITH_YOUR_PUBLIC_KEY'
-param sshSourceAddressPrefix = 'REPLACE_WITH_YOUR_PUBLIC_IP/32'
-param labSourceAddressPrefix = 'REPLACE_WITH_YOUR_PUBLIC_IP/32'
+var laptopIp = readEnvironmentVariable('LAPTOP_IP')
+var laptopIpCidr = '${laptopIp}/32'
+
+param sshSourceAddressPrefix = laptopIpCidr
+param labSourceAddressPrefix = laptopIpCidr
 param dataDiskSizeGB = 128

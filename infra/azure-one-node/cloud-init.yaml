@@ -17,11 +17,12 @@ write_files:
     permissions: '0644'
     content: |
       vm.max_map_count = 262144
-  - path: /etc/facter/facts.d/elk_azure_data_disk.yaml
+  - path: /etc/facter/facts.d/elk_lab.yaml
     owner: root:root
     permissions: '0644'
     content: |
       espv: /dev/disk/azure/scsi1/lun0
+      elk_lab_source_cidr: __ELK_LAB_SOURCE_CIDR__
 
 runcmd:
   - [udevadm, settle, --timeout=60]

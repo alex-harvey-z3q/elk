@@ -6,8 +6,9 @@ elastic_stack::repo::version: 8
 
 # profile::base
 profile::base::yum::repos: {}
+# In Azure, cloud-init sets facts.elk_lab_source_cidr from LAPTOP_IP.
 profile::base::firewall_multis:
-  '00099 accept tcp ports for SSH, Kibana, Elasticsearch and Beats':
+  '00099 accept tcp ports for SSH, Kibana, Elasticsearch and Beats from trusted client':
     dport:
       - 22
       - 80
@@ -17,7 +18,7 @@ profile::base::firewall_multis:
     jump: accept
     proto: tcp
     source:
-      - 0.0.0.0/0
+      - "%{facts.elk_lab_source_cidr}"
 profile::base::tools:
   vim:
     ensure: installed

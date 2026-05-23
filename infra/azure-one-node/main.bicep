@@ -16,7 +16,7 @@ param adminSshPublicKey string
 @description('CIDR allowed to SSH to the VM, for example 203.0.113.10/32.')
 param sshSourceAddressPrefix string
 
-@description('CIDR allowed to reach the lab HTTP ports. Keep this narrow for test use.')
+@description('CIDR allowed to reach the lab ingress ports. Keep this narrow for test use.')
 param labSourceAddressPrefix string = sshSourceAddressPrefix
 
 @description('VM size. Elastic needs more memory than a tiny general-purpose VM.')
@@ -51,8 +51,8 @@ param imageSku string = '9-gen2'
 @description('Linux image version.')
 param imageVersion string = 'latest'
 
-@description('Cloud-init configuration applied at first boot.')
-param customData string = loadTextContent('cloud-init.yaml')
+@description('Cloud-init configuration template applied at first boot.')
+param customDataTemplate string = loadTextContent('cloud-init.yaml')
 
 var safePrefix = take(toLower(replace(namePrefix, '_', '-')), 40)
 var vnetName = '${safePrefix}-vnet'
@@ -61,6 +61,7 @@ var nsgName = '${safePrefix}-nsg'
 var publicIpName = '${safePrefix}-pip'
 var nicName = '${safePrefix}-nic'
 var vmName = '${safePrefix}-vm'
+var renderedCustomData = replace(customDataTemplate, '__ELK_LAB_SOURCE_CIDR__', labSourceAddressPrefix)
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: vnetName
@@ -104,7 +105,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
         }
       }
       {
-        name: 'AllowLabHttp'
+        name: 'AllowLabPorts'
         properties: {
           priority: 110
           direction: 'Inbound'
@@ -167,7 +168,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
     osProfile: {
       computerName: vmName
       adminUsername: adminUsername
-      customData: base64(customData)
+      customData: base64(renderedCustomData)
       linuxConfiguration: {
         disablePasswordAuthentication: true
         ssh: {

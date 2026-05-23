@@ -35,17 +35,17 @@ Base profile
 include profile::base
 ```
 
-##### Open port 22 and 80 in a Hiera block
+##### Open lab ports in a Hiera block for a trusted client
 
 ```puppet
 
 profile::base::firewall_multis:
- '00099 accept tcp ports for SSH and Kibana':
-   dport: [22, 80]
-   action: accept
+ '00099 accept tcp ports for SSH, Kibana, Elasticsearch and Beats from trusted client':
+   dport: [22, 80, 5044, 5601, 9200]
+   jump: accept
    proto: tcp
    source:
-     - 0.0.0.0/0
+     - "%{facts.elk_lab_source_cidr}"
 ```
 
 ##### Install vim
