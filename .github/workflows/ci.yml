@@ -20,8 +20,7 @@ jobs:
         with:
           ruby-version: "3.2"
           bundler-cache: true
+      - run: python -m pip install yamllint
       - run: bundle exec rake lint
       - run: bundle exec rake spec_prep
       - run: bundle exec rake spec
-      - run: python -m pip install yamllint
-      - run: yamllint -c yamllint.yml spec/fixtures/hiera.yaml spec/fixtures/hiera.yaml.acceptance spec/fixtures/hieradata/common.yaml .github/workflows/ci.yml .fixtures.yml infra/azure-one-node/cloud-init.yaml

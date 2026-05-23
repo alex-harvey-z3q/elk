@@ -19,6 +19,22 @@ PuppetLint::RakeTask.new(:lint) do |config|
   config.ignore_paths = ["tests/**/*.pp", "vendor/**/*.pp","examples/**/*.pp", "spec/**/*.pp", "pkg/**/*.pp"]
 end
 
+YAML_LINT_FILES = [
+  'spec/fixtures/hiera.yaml',
+  'spec/fixtures/hiera.yaml.acceptance',
+  'spec/fixtures/hieradata/common.yaml',
+  '.github/workflows/ci.yml',
+  '.fixtures.yml',
+  'infra/azure-one-node/cloud-init.yaml',
+].freeze
+
+desc 'Run yamllint over repository YAML files'
+task :yaml_lint do
+  sh(['yamllint', '-c', 'yamllint.yml', *YAML_LINT_FILES].shelljoin)
+end
+
+Rake::Task[:lint].enhance([:yaml_lint])
+
 desc 'Run static checks and unit tests'
 task test: [:lint, :spec]
 
