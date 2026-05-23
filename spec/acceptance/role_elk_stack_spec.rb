@@ -14,8 +14,7 @@ EOS
 describe 'role::elk_stack' do
   context 'puppet apply' do
     it 'applies idempotently' do
-      apply_manifest pp, catch_failures: true
-      expect(apply_manifest(pp, catch_failures: true).exit_code).to be_zero
+      idempotent_apply(pp, hiera_config: '/etc/puppetlabs/code/hiera.yaml')
     end
   end
 

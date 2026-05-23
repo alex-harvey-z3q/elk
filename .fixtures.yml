@@ -1,5 +1,12 @@
 ---
 fixtures:
+  repositories:
+    puppet_agent:
+      repo: https://github.com/puppetlabs/puppetlabs-puppet_agent.git
+      ref: 16d966be72887dbf1a678a7cc840253df492b2df
+    facts:
+      repo: https://github.com/puppetlabs/puppetlabs-facts.git
+      ref: b56239296c890e25357b5471fef1649e11de4ef1
   forge_modules:
     stdlib:
       repo: puppetlabs/stdlib

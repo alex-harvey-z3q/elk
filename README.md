@@ -1,5 +1,23 @@
 # elk
 
+#### Table of contents
+
+1. [Intro](#intro)
+2. [Target](#target)
+3. [Architecture](#architecture)
+4. [Module Set](#module-set)
+5. [Repository Layout](#repository-layout)
+6. [Azure Topologies](#azure-topologies)
+    * [One-Node Topology](#one-node-topology)
+        - [Architecture](#architecture-2)
+        - [Deployment](#deployment)
+    * [Multi-Node Topology](#multi-node-topology)
+7. [Testing](#testing)
+8. [Security Note](#security-note)
+9. [License](#license)
+
+## Intro
+
 Puppet control repo for a compact, Hiera-driven Elastic Stack lab.
 
 The default role provisions Filebeat, Logstash, Elasticsearch, Kibana, and Nginx
@@ -14,16 +32,16 @@ testing, and demonstration of a roles-and-profiles Puppet control repo.
 - Rocky/EL 9 style hosts
 - One Elasticsearch service per node
 - Hiera-managed profile data
-- RSpec catalog tests and Beaker acceptance tests
+- RSpec catalog tests and Litmus acceptance tests
 
 ## Architecture
 
 ```text
-                 +-------------------+
-                 |  Managed log file |
-                 |  /var/log/messages|
-                 |  /var/log/testlog |
-                 +---------+---------+
+                 +---------------------+
+                 |  Managed log file   |
+                 |  /var/log/messages  |
+                 |  /var/log/testlog   |
+                 +---------+-----------+
                            |
                            v
                     +-------------+
@@ -68,8 +86,10 @@ mod 'puppet/logstash', '9.0.0'
 mod 'puppet/kibana', '9.0.0'
 ```
 
-Supporting modules are pinned in `spec/fixtures/Puppetfile` and `.fixtures.yml`
-so local catalog tests and CI resolve the same dependency set.
+Supporting stack modules are pinned in `spec/fixtures/Puppetfile` and
+`.fixtures.yml` so local catalog tests and CI resolve the same dependency set.
+Litmus utility modules are pulled from their upstream GitHub repositories by
+`.fixtures.yml`.
 
 ## Repository Layout
 
@@ -77,27 +97,159 @@ so local catalog tests and CI resolve the same dependency set.
 - `site/modules/profile`: profile classes and managed files/templates
 - `spec/fixtures/hieradata`: sample Hiera data for the lab stack
 - `spec/classes`: catalog tests
-- `spec/acceptance`: Beaker acceptance tests
+- `spec/acceptance`: Litmus acceptance tests
 - `.github/workflows`: CI checks
 
-## Local Checks
+## Azure Topologies
+
+Each Azure deployment topology lives in its own directory under `infra/`. The
+current topology is `infra/azure-one-node`; a future multi-node topology can be
+added as `infra/azure-multi-node` without reshaping the one-node test target.
+
+Create the shared resource group once before deploying a topology:
+
+```bash
+bundle exec rake azure:resource_group
+```
+
+Destroy the lab resource group when finished:
+
+```bash
+bundle exec rake azure:destroy
+```
+
+### One-Node Topology
+
+The `infra/azure-one-node` Bicep template provisions a single EL9-compatible
+Azure VM for end-to-end testing on real systemd/package infrastructure.
+
+#### Architecture
+
+```text
+                         Azure subscription
+                                |
+                                v
+                    +-----------------------+
+                    | Resource group        |
+                    | rg-elk-lab            |
+                    +-----------+-----------+
+                                |
+              +-----------------+-----------------+
+              |                                   |
+              v                                   v
+   +---------------------+             +---------------------+
+   | Virtual network     |             |     Public IP       |
+   | 10.42.0.0/16        |             |      static         |
+   +----------+----------+             +----------+----------+
+              |                                   |
+              v                                   |
+   +---------------------+                        |
+   | Subnet              |                        |
+   | 10.42.1.0/24        |                        |
+   +----------+----------+                        |
+              |                                   |
+              v                                   |
+   +---------------------+                        |
+   | Network security    |                        |
+   | group               |                        |
+   | SSH :22             |                        |
+   | HTTP :80            |                        |
+   | Beats :5044         |                        |
+   | Kibana :5601        |                        |
+   | Elasticsearch :9200 |                        |
+   +----------+----------+                        |
+              |                                   |
+              v                                   v
+        +-----+-----------------------------------+-----+
+        | Network interface                             |
+        +----------------------+------------------------+
+                               |
+                               v
+        +-----------------------------------------------+
+        | AlmaLinux 9 VM                                |
+        | cloud-init: packages, iptables, vm.max_map    |
+        | Puppet acceptance target                      |
+        +-----------------------------------------------+
+```
+
+#### Deployment
+
+Before deploying, replace the placeholder SSH key and source CIDRs in
+`infra/azure-one-node/main.bicepparam`. The default image is AlmaLinux 9
+because it is EL9-compatible and available as a straightforward Azure
+Marketplace image; the image publisher, offer, SKU, and version are parameters
+so a Rocky 9 image can be used instead where desired.
+
+Log in to Azure and choose the subscription:
+
+```bash
+az login
+az account set --subscription <subscription-id-or-name>
+```
+
+Then to deploy:
+
+```bash
+bundle exec rake azure:one_node:build
+bundle exec rake azure:one_node:validate
+bundle exec rake azure:one_node:deploy
+bundle exec rake azure:one_node:outputs
+```
+
+The Azure tasks use these environment variables when you want to override the
+common defaults:
+
+```bash
+AZURE_RESOURCE_GROUP=rg-elk-lab
+AZURE_LOCATION=australiaeast
+```
+
+The one-node tasks use these additional environment variables:
+
+```bash
+AZURE_ONE_NODE_DEPLOYMENT_NAME=elk-one-node
+AZURE_ONE_NODE_TEMPLATE_FILE=infra/azure-one-node/main.bicep
+AZURE_ONE_NODE_PARAMETERS_FILE=infra/azure-one-node/main.bicepparam
+AZURE_ONE_NODE_BUILD_DIR=/tmp/elk-azure-one-node-bicep
+```
+
+The deployment output includes the public IP and SSH command. The next testing
+step is to turn those outputs into a Litmus/Bolt inventory entry so the
+acceptance specs can target the Azure VM directly.
+
+### Multi-Node Topology
+
+Not implemented yet. The intended home is `infra/azure-multi-node`, with its
+own Bicep template, parameter file, README notes, and Rake tasks under
+`azure:multi_node:*`.
+
+## Testing
 
 Install Ruby dependencies:
 
-```shell
+```bash
 bundle install
 ```
 
 Run syntax, lint, and catalog tests:
 
-```shell
+```bash
 bundle exec rake unit
 ```
 
-Run acceptance tests against the Vagrant nodeset:
+Run the Azure Bicep compile check:
 
-```shell
-BEAKER_destroy=no bundle exec rspec spec/acceptance
+```bash
+bundle exec rake azure:one_node:build
+```
+
+Acceptance tests are intended to run against the Azure VM created by the Bicep
+deployment. The next step is to generate `spec/fixtures/litmus_inventory.yaml`
+from `bundle exec rake azure:one_node:outputs`, install the Puppet 8 agent on
+that target, and run:
+
+```bash
+TARGET_HOST=<azure-target-name> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
 ```
 
 ## Security Note
@@ -113,3 +265,7 @@ profile::elasticsearch::data_node::config:
 Do not use that setting for production. A production deployment should manage
 TLS, credentials, Kibana service authentication, snapshots, and lifecycle
 policies explicitly.
+
+## License
+
+MIT.

@@ -1,0 +1,21 @@
+#cloud-config
+---
+package_update: true
+packages:
+  - curl
+  - iptables-services
+  - lvm2
+  - tar
+  - unzip
+
+write_files:
+  - path: /etc/sysctl.d/99-elastic-lab.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      vm.max_map_count = 262144
+
+runcmd:
+  - [sysctl, --system]
+  - [systemctl, enable, --now, iptables.service]
+  - [systemctl, enable, --now, ip6tables.service]
