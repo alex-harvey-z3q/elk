@@ -46,7 +46,6 @@ RSpec.configure do |c|
     :osfamily        => 'RedHat',
     :path            => ['/bin', '/usr/bin'],
     :puppetversion   => '8.10.0',
-    :redispv         => '/dev/sdb',
     :selinux         => false,
     :hostname        => 'myhost',
     :domain          => 'example.com',

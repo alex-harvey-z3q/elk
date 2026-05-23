@@ -18,7 +18,6 @@
 * [`profile::kibana`](#profilekibana): 
 * [`profile::logstash`](#profilelogstash): 
 * [`profile::nginx`](#profilenginx): 
-* [`profile::redis`](#profileredis): 
 * [`role::elk_stack`](#roleelk_stack): 
 
 ## Classes
@@ -376,54 +375,6 @@ Data type: `Integer[30000]`
 ##### `gid`
 
 Data type: `Integer[30000]`
-
-
-
-### profile::redis
-
-The profile::redis class.
-
-#### Parameters
-
-The following parameters are available in the `profile::redis` class.
-
-##### `firewall_multis`
-
-Data type: `Hash[String, Hash]`
-
-
-
-##### `volume_groups`
-
-Data type: `Hash[
-    String, Struct[{
-      physical_volumes => Array[String],
-      logical_volumes  => Hash[String, Struct[{
-        mountpath => Stdlib::Absolutepath }]] }]]`
-
-
-
-##### `uid`
-
-Data type: `Integer[30000]`
-
-
-
-##### `gid`
-
-Data type: `Integer[30000]`
-
-
-
-##### `vm_overcommit_memory`
-
-Data type: `Integer[0,1]`
-
-
-
-##### `net_core_somaxconn`
-
-Data type: `Integer`
 
 
 
