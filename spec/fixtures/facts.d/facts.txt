@@ -1,1 +1,1 @@
-espv=/dev/sdc
+espv=/dev/disk/azure/scsi1/lun0

@@ -22,7 +22,7 @@ RSpec.configure do |c|
 
   c.default_facts   = {
     :concat_basedir  => '/var/lib/puppet/concat',
-    :espv            => '/dev/sdc',
+    :espv            => '/dev/disk/azure/scsi1/lun0',
     :id              => '1',
     :is_virtual      => true,
     :kernel          => 'Linux',

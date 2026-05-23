@@ -8,14 +8,23 @@ packages:
   - tar
   - unzip
 
+bootcmd:
+  - [mkdir, -p, /etc/facter/facts.d]
+
 write_files:
   - path: /etc/sysctl.d/99-elastic-lab.conf
     owner: root:root
     permissions: '0644'
     content: |
       vm.max_map_count = 262144
+  - path: /etc/facter/facts.d/elk_azure_data_disk.yaml
+    owner: root:root
+    permissions: '0644'
+    content: |
+      espv: /dev/disk/azure/scsi1/lun0
 
 runcmd:
+  - [udevadm, settle, --timeout=60]
   - [sysctl, --system]
   - [systemctl, enable, --now, iptables.service]
   - [systemctl, enable, --now, ip6tables.service]

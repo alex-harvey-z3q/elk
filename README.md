@@ -168,7 +168,9 @@ Azure VM for end-to-end testing on real systemd/package infrastructure.
         +-----------------------------------------------+
         | AlmaLinux 9 VM                                |
         | one-node ELK stack                            |
+        | OS disk + managed data disk at LUN 0          |
         | cloud-init: packages, iptables, vm.max_map    |
+        | external fact: espv=/dev/disk/azure/scsi1/lun0|
         | Puppet acceptance target                      |
         +-----------------------------------------------+
 ```
@@ -180,6 +182,11 @@ Before deploying, replace the placeholder SSH key and source CIDRs in
 because it is EL9-compatible and available as a straightforward Azure
 Marketplace image; the image publisher, offer, SKU, and version are parameters
 so a Rocky 9 image can be used instead where desired.
+
+The one-node template also attaches a managed data disk at LUN 0. Cloud-init
+publishes that Azure LUN symlink as the `espv` external fact, so
+`profile::elasticsearch::data_node` can build the Elasticsearch LVM volume at
+`/srv/es` without relying on volatile `/dev/sd*` device names.
 
 Log in to Azure and choose the subscription:
 

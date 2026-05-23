@@ -38,8 +38,9 @@ class profile::elasticsearch::data_node (
     fail('You must specify one volume group for the data dir')
   }
 
-  # Note that it is expected that the user has created a custom fact espv
-  # points to the physical volume for the data node filesystem.
+  # Note that the user must provide the custom fact espv pointing to the
+  # physical volume for the data node filesystem. The Azure one-node topology
+  # publishes this as /dev/disk/azure/scsi1/lun0.
   #
   assert_type(Stdlib::Absolutepath, $facts['espv'])
 

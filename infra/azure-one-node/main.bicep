@@ -25,6 +25,20 @@ param vmSize string = 'Standard_D4s_v5'
 @description('OS disk size in GiB.')
 param osDiskSizeGB int = 128
 
+@description('Elasticsearch data disk size in GiB. Attached at LUN 0.')
+@minValue(4)
+param dataDiskSizeGB int = 128
+
+@allowed([
+  'Premium_LRS'
+  'Premium_ZRS'
+  'StandardSSD_LRS'
+  'StandardSSD_ZRS'
+  'Standard_LRS'
+])
+@description('Managed disk storage type for the Elasticsearch data disk.')
+param dataDiskStorageAccountType string = 'Premium_LRS'
+
 @description('Linux image publisher.')
 param imagePublisher string = 'almalinux'
 
@@ -180,6 +194,16 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
           storageAccountType: 'Premium_LRS'
         }
       }
+      dataDisks: [
+        {
+          lun: 0
+          createOption: 'Empty'
+          diskSizeGB: dataDiskSizeGB
+          managedDisk: {
+            storageAccountType: dataDiskStorageAccountType
+          }
+        }
+      ]
     }
     networkProfile: {
       networkInterfaces: [
