@@ -167,6 +167,7 @@ Azure VM for end-to-end testing on real systemd/package infrastructure.
                                v
         +-----------------------------------------------+
         | AlmaLinux 9 VM                                |
+        | one-node ELK stack                            |
         | cloud-init: packages, iptables, vm.max_map    |
         | Puppet acceptance target                      |
         +-----------------------------------------------+
