@@ -68,6 +68,14 @@ def azure_one_node_build_dir
   ENV.fetch('AZURE_ONE_NODE_BUILD_DIR', File.join(Dir.tmpdir, 'elk-azure-one-node-bicep'))
 end
 
+def azure_one_node_compiled_template_file
+  File.join(azure_one_node_build_dir, 'main.json')
+end
+
+def azure_one_node_compiled_parameters_file
+  File.join(azure_one_node_build_dir, 'main.parameters.json')
+end
+
 def azure_cli(*args)
   sh args.shelljoin
 end
@@ -99,12 +107,12 @@ namespace :azure do
       azure_cli(
         'az', 'bicep', 'build',
         '--file', azure_one_node_template_file,
-        '--outfile', File.join(azure_one_node_build_dir, 'main.json')
+        '--outfile', azure_one_node_compiled_template_file
       )
       azure_cli(
         'az', 'bicep', 'build-params',
         '--file', azure_one_node_parameters_file,
-        '--outfile', File.join(azure_one_node_build_dir, 'main.parameters.json')
+        '--outfile', azure_one_node_compiled_parameters_file
       )
     end
 
@@ -113,8 +121,8 @@ namespace :azure do
       azure_cli(
         'az', 'deployment', 'group', 'validate',
         '--resource-group', azure_resource_group,
-        '--template-file', azure_one_node_template_file,
-        '--parameters', "@#{azure_one_node_parameters_file}"
+        '--template-file', azure_one_node_compiled_template_file,
+        '--parameters', "@#{azure_one_node_compiled_parameters_file}"
       )
     end
 
@@ -124,8 +132,8 @@ namespace :azure do
         'az', 'deployment', 'group', 'create',
         '--name', azure_one_node_deployment_name,
         '--resource-group', azure_resource_group,
-        '--template-file', azure_one_node_template_file,
-        '--parameters', "@#{azure_one_node_parameters_file}"
+        '--template-file', azure_one_node_compiled_template_file,
+        '--parameters', "@#{azure_one_node_compiled_parameters_file}"
       )
     end
 
