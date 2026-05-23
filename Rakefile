@@ -24,7 +24,6 @@ YAML_LINT_FILES = [
   'spec/fixtures/hieradata/common.yaml',
   '.github/workflows/ci.yml',
   '.fixtures.yml',
-  'infra/azure-one-node/cloud-init.yaml',
 ].freeze
 
 desc 'Run yamllint over repository YAML files'
