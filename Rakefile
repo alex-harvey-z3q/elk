@@ -118,6 +118,7 @@ namespace :azure do
     desc 'Validate the one-node cloud-init configuration schema'
     task :cloud_init_schema do
       shell_command(
+        'sudo',
         'cloud-init', 'schema',
         '-c', azure_one_node_cloud_init_file,
         '--annotate'
