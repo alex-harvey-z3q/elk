@@ -27,6 +27,16 @@ YAML_LINT_FILES = [
   '.fixtures.yml',
 ].freeze
 
+AZURE_RESOURCE_GROUP = 'rg-elk-lab'
+AZURE_LOCATION = 'australiaeast'
+AZURE_ONE_NODE_TEMPLATE_FILE = 'infra/azure-one-node/main.bicep'
+AZURE_ONE_NODE_PARAMETERS_FILE = 'infra/azure-one-node/main.bicepparam'
+AZURE_ONE_NODE_CLOUD_INIT_FILE = 'infra/azure-one-node/cloud-init.yaml'
+AZURE_ONE_NODE_DEPLOYMENT_NAME = 'elk-one-node'
+AZURE_ONE_NODE_BUILD_DIR = File.join(Dir.tmpdir, 'elk-azure-one-node-bicep')
+AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'main.json')
+AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'main.parameters.json')
+
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
   sh('yamllint', '-c', 'yamllint.yml', *YAML_LINT_FILES)
@@ -38,48 +48,10 @@ desc 'Run static checks and unit tests'
 task test: [:lint, :spec]
 
 desc 'Prepare fixtures and run unit tests'
-task :unit do
-  Rake::Task[:spec_prep].invoke
-  Rake::Task[:spec].invoke
-end
-
-def azure_resource_group
-  ENV.fetch('AZURE_RESOURCE_GROUP', 'rg-elk-lab')
-end
-
-def azure_location
-  ENV.fetch('AZURE_LOCATION', 'australiaeast')
-end
-
-def azure_one_node_template_file
-  ENV.fetch('AZURE_ONE_NODE_TEMPLATE_FILE', 'infra/azure-one-node/main.bicep')
-end
-
-def azure_one_node_parameters_file
-  ENV.fetch('AZURE_ONE_NODE_PARAMETERS_FILE', 'infra/azure-one-node/main.bicepparam')
-end
-
-def azure_one_node_admin_ssh_public_key_files
-  explicit_public_key_file = ENV['AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE']
-  abort <<~MESSAGE if explicit_public_key_file && !File.file?(explicit_public_key_file)
-    AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE does not point to a readable public key file.
-
-    Current value:
-      AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=#{explicit_public_key_file}
-
-    Example:
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
-  MESSAGE
-
-  [
-    explicit_public_key_file,
-    File.expand_path('~/.ssh/id_ed25519.pub'),
-    File.expand_path('~/.ssh/id_rsa.pub'),
-  ].compact
-end
+task unit: [:spec_prep, :spec]
 
 def ensure_azure_one_node_laptop_ip!
-  laptop_ip = ENV.fetch('LAPTOP_IP', '').strip
+  laptop_ip = ENV['LAPTOP_IP'].to_s.strip
   abort <<~MESSAGE if laptop_ip.empty?
     Set LAPTOP_IP before running this task.
 
@@ -112,46 +84,25 @@ rescue IPAddr::InvalidAddressError
 end
 
 def ensure_azure_one_node_admin_ssh_public_key!
-  return unless ENV.fetch('AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY', '').strip.empty?
-
-  public_key_file = azure_one_node_admin_ssh_public_key_files.find { |path| File.file?(path) }
-  abort <<~MESSAGE if public_key_file.nil?
-    Set AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY or AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE before running this task.
-
-    Examples:
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
-  MESSAGE
-
-  public_key = File.read(public_key_file).strip
+  public_key = ENV['AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY'].to_s.strip
   abort <<~MESSAGE if public_key.empty?
-    SSH public key file #{public_key_file} is empty.
+    Set AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY before running this task.
 
-    Set a different public key file:
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
+    Example:
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
   MESSAGE
 
-  ENV['AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY'] = public_key
-end
+  return if public_key.match?(/\Assh-(rsa|ed25519) \S+/)
 
-def azure_one_node_cloud_init_file
-  ENV.fetch('AZURE_ONE_NODE_CLOUD_INIT_FILE', 'infra/azure-one-node/cloud-init.yaml')
-end
+  abort <<~MESSAGE
+    AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY must contain an SSH public key.
 
-def azure_one_node_deployment_name
-  ENV.fetch('AZURE_ONE_NODE_DEPLOYMENT_NAME', 'elk-one-node')
-end
+    Current value:
+      AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY=#{public_key}
 
-def azure_one_node_build_dir
-  ENV.fetch('AZURE_ONE_NODE_BUILD_DIR', File.join(Dir.tmpdir, 'elk-azure-one-node-bicep'))
-end
-
-def azure_one_node_compiled_template_file
-  File.join(azure_one_node_build_dir, 'main.json')
-end
-
-def azure_one_node_compiled_parameters_file
-  File.join(azure_one_node_build_dir, 'main.parameters.json')
+    Example:
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+  MESSAGE
 end
 
 def azure_cli(*args)
@@ -167,8 +118,8 @@ namespace :azure do
   task :resource_group do
     azure_cli(
       'az', 'group', 'create',
-      '--name', azure_resource_group,
-      '--location', azure_location
+      '--name', AZURE_RESOURCE_GROUP,
+      '--location', AZURE_LOCATION
     )
   end
 
@@ -176,7 +127,7 @@ namespace :azure do
   task :destroy do
     azure_cli(
       'az', 'group', 'delete',
-      '--name', azure_resource_group,
+      '--name', AZURE_RESOURCE_GROUP,
       '--yes',
       '--no-wait'
     )
@@ -187,7 +138,7 @@ namespace :azure do
     task :lint do
       azure_cli(
         'az', 'bicep', 'lint',
-        '--file', azure_one_node_template_file
+        '--file', AZURE_ONE_NODE_TEMPLATE_FILE
       )
     end
 
@@ -196,7 +147,7 @@ namespace :azure do
       shell_command(
         'sudo',
         'cloud-init', 'schema',
-        '-c', azure_one_node_cloud_init_file,
+        '-c', AZURE_ONE_NODE_CLOUD_INIT_FILE,
         '--annotate'
       )
     end
@@ -205,24 +156,22 @@ namespace :azure do
     task :build do
       ensure_azure_one_node_laptop_ip!
       ensure_azure_one_node_admin_ssh_public_key!
-      FileUtils.mkdir_p(azure_one_node_build_dir)
+      FileUtils.mkdir_p(AZURE_ONE_NODE_BUILD_DIR)
       azure_cli(
         'az', 'bicep', 'build',
-        '--file', azure_one_node_template_file,
-        '--outfile', azure_one_node_compiled_template_file
+        '--file', AZURE_ONE_NODE_TEMPLATE_FILE,
+        '--outfile', AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE
       )
       azure_cli(
         'az', 'bicep', 'build-params',
-        '--file', azure_one_node_parameters_file,
-        '--outfile', azure_one_node_compiled_parameters_file
+        '--file', AZURE_ONE_NODE_PARAMETERS_FILE,
+        '--outfile', AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
     desc 'Assert important properties in the compiled one-node Azure template with RSpec'
     task assert_compiled: [:build] do
       ENV['RUN_AZURE_STATIC_SPECS'] = 'true'
-      ENV['AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE'] = azure_one_node_compiled_template_file
-      ENV['AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE'] = azure_one_node_compiled_parameters_file
       sh('bundle', 'exec', 'rspec', 'spec/azure/one_node_compiled_spec.rb')
     end
 
@@ -233,9 +182,9 @@ namespace :azure do
     task validate: [:build] do
       azure_cli(
         'az', 'deployment', 'group', 'validate',
-        '--resource-group', azure_resource_group,
-        '--template-file', azure_one_node_compiled_template_file,
-        '--parameters', "@#{azure_one_node_compiled_parameters_file}"
+        '--resource-group', AZURE_RESOURCE_GROUP,
+        '--template-file', AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
+        '--parameters', "@#{AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE}"
       )
     end
 
@@ -243,10 +192,10 @@ namespace :azure do
     task deploy: [:build] do
       azure_cli(
         'az', 'deployment', 'group', 'create',
-        '--name', azure_one_node_deployment_name,
-        '--resource-group', azure_resource_group,
-        '--template-file', azure_one_node_compiled_template_file,
-        '--parameters', "@#{azure_one_node_compiled_parameters_file}"
+        '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
+        '--resource-group', AZURE_RESOURCE_GROUP,
+        '--template-file', AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
+        '--parameters', "@#{AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE}"
       )
     end
 
@@ -254,8 +203,8 @@ namespace :azure do
     task :outputs do
       azure_cli(
         'az', 'deployment', 'group', 'show',
-        '--name', azure_one_node_deployment_name,
-        '--resource-group', azure_resource_group,
+        '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
+        '--resource-group', AZURE_RESOURCE_GROUP,
         '--query', 'properties.outputs',
         '--output', 'table'
       )

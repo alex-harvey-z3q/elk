@@ -15,6 +15,10 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PUPPET_GEM_VERSION: "~> 8.0"
       LAPTOP_IP: 203.0.113.10
+      AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY: >-
+        ssh-ed25519
+        AAAAC3NzaC1lZDI1NTE5AAAAIDummyStaticKeyForAzureOneNodeTests
+        ci@example
     steps:
       - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1

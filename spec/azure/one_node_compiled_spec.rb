@@ -5,17 +5,9 @@ require 'tmpdir'
 require 'spec_helper'
 
 RSpec.describe 'compiled one-node Azure template', :azure_static do
-  let(:build_dir) do
-    ENV.fetch('AZURE_ONE_NODE_BUILD_DIR', File.join(Dir.tmpdir, 'elk-azure-one-node-bicep'))
-  end
-
-  let(:template_file) do
-    ENV.fetch('AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE', File.join(build_dir, 'main.json'))
-  end
-
-  let(:parameters_file) do
-    ENV.fetch('AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE', File.join(build_dir, 'main.parameters.json'))
-  end
+  let(:build_dir) { File.join(Dir.tmpdir, 'elk-azure-one-node-bicep') }
+  let(:template_file) { File.join(build_dir, 'main.json') }
+  let(:parameters_file) { File.join(build_dir, 'main.parameters.json') }
 
   let(:template) { JSON.parse(File.read(template_file)) }
   let(:parameters) { JSON.parse(File.read(parameters_file)) }
@@ -44,6 +36,10 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
     IPAddr.new(value).ipv4? && value.end_with?('/32')
   rescue IPAddr::InvalidAddressError, TypeError
     false
+  end
+
+  def parameter_value(name)
+    parameters.fetch('parameters').fetch(name).fetch('value')
   end
 
   it 'has a LUN 0 Elasticsearch data disk' do
@@ -84,20 +80,46 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
     expect(properties.fetch('destinationPortRanges')).to contain_exactly('80', '5044', '5601', '9200')
   end
 
-  it 'uses matching LAPTOP_IP-derived single-host CIDRs in the compiled parameters' do
-    ssh_source = parameters.fetch('parameters').fetch('sshSourceAddressPrefix').fetch('value')
-    lab_source = parameters.fetch('parameters').fetch('labSourceAddressPrefix').fetch('value')
+  it 'uses the LAPTOP_IP-derived single-host CIDR for Azure ingress' do
+    ssh_source = parameter_value('sshSourceAddressPrefix')
+    nsg = only_resource_of_type(template, 'Microsoft.Network/networkSecurityGroups')
+    ssh_rule = security_rule(nsg, 'AllowSsh')
+    lab_rule = security_rule(nsg, 'AllowLabPorts')
 
     expect(single_host_ipv4_cidr?(ssh_source)).to eq(true)
-    expect(single_host_ipv4_cidr?(lab_source)).to eq(true)
-    expect(ssh_source).to eq(lab_source)
     expect(ssh_source).not_to eq('0.0.0.0/0')
+    expect(ssh_rule.fetch('properties').fetch('sourceAddressPrefix')).to eq("[parameters('sshSourceAddressPrefix')]")
+    expect(lab_rule.fetch('properties').fetch('sourceAddressPrefix')).to eq("[parameters('sshSourceAddressPrefix')]")
   end
 
   it 'uses an actual SSH public key in the compiled parameters' do
-    public_key = parameters.fetch('parameters').fetch('adminSshPublicKey').fetch('value')
+    public_key = parameter_value('adminSshPublicKey')
 
     expect(public_key).to match(/\Assh-(rsa|ed25519) \S+/)
     expect(public_key).not_to include('REPLACE_WITH_YOUR_PUBLIC_KEY')
+  end
+
+  it 'keeps Azure one-node lab data in the parameter file' do
+    expect(parameters.fetch('parameters').keys).to contain_exactly(
+      'location',
+      'namePrefix',
+      'adminUsername',
+      'adminSshPublicKey',
+      'sshSourceAddressPrefix',
+      'vmSize',
+      'osDiskSizeGB',
+      'dataDiskSizeGB',
+      'dataDiskStorageAccountType',
+      'imagePublisher',
+      'imageOffer',
+      'imageSku',
+      'imageVersion',
+      'customDataTemplate'
+    )
+    expect(parameter_value('location')).to eq('australiaeast')
+    expect(parameter_value('adminUsername')).to eq('azureuser')
+    expect(parameter_value('vmSize')).to eq('Standard_D4s_v4')
+    expect(parameter_value('dataDiskStorageAccountType')).to eq('Premium_LRS')
+    expect(parameter_value('imageSku')).to eq('9-gen2')
   end
 end

@@ -174,22 +174,20 @@ Azure VM for end-to-end testing on real systemd/package infrastructure.
 
 #### Deployment
 
-Before deploying, export `LAPTOP_IP` with your current public IPv4 address. The
-parameter file appends `/32` automatically so the Azure NSG and host firewall
-open only for that single IP.
+Before deploying, export the two values that are intentionally local to your
+machine: your current public IPv4 address and the SSH public key Azure should
+install for the VM admin user. The parameter file appends `/32` to `LAPTOP_IP`
+automatically so the Azure NSG and host firewall open only for that single IP.
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
 ```
 
-The Rake tasks read the VM admin SSH public key from
-`AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY` when set. Otherwise they use the first
-public key file found at `AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE`,
-`~/.ssh/id_ed25519.pub`, or `~/.ssh/id_rsa.pub`.
-
-The default image is AlmaLinux 9 because it is EL9-compatible and available as a
-straightforward Azure Marketplace image; the image publisher, offer, SKU, and
-version are parameters so a Rocky 9 image can be used instead where desired.
+The one-node topology otherwise uses fixed lab values recorded in
+`infra/azure-one-node/main.bicepparam`: resource group `rg-elk-lab`, location
+`australiaeast`, deployment name `elk-one-node`, admin user `azureuser`, VM size
+`Standard_D4s_v4`, AlmaLinux 9, and a 128 GiB managed data disk.
 
 The one-node template also attaches a managed data disk at LUN 0. Cloud-init
 publishes that Azure LUN symlink as the `espv` external fact, so
@@ -213,26 +211,6 @@ bundle exec rake azure:one_node:build
 bundle exec rake azure:one_node:validate
 bundle exec rake azure:one_node:deploy
 bundle exec rake azure:one_node:outputs
-```
-
-The Azure tasks require `LAPTOP_IP` and use these additional environment
-variables when you want to override the common defaults:
-
-```bash
-LAPTOP_IP=<your-public-ipv4>
-AZURE_RESOURCE_GROUP=rg-elk-lab
-AZURE_LOCATION=australiaeast
-```
-
-The one-node tasks use these additional environment variables:
-
-```bash
-AZURE_ONE_NODE_DEPLOYMENT_NAME=elk-one-node
-AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY=<ssh-public-key>
-AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
-AZURE_ONE_NODE_TEMPLATE_FILE=infra/azure-one-node/main.bicep
-AZURE_ONE_NODE_PARAMETERS_FILE=infra/azure-one-node/main.bicepparam
-AZURE_ONE_NODE_BUILD_DIR=/tmp/elk-azure-one-node-bicep
 ```
 
 The deployment output includes the public IP and SSH command. The next testing
@@ -265,6 +243,7 @@ assertions against the compiled ARM JSON:
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:one_node:static
 ```
 

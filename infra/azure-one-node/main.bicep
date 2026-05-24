@@ -1,13 +1,13 @@
 targetScope = 'resourceGroup'
 
 @description('Azure region for all resources.')
-param location string = resourceGroup().location
+param location string
 
 @description('Short name used as the prefix for Azure resource names.')
-param namePrefix string = 'elk-lab'
+param namePrefix string
 
 @description('Admin username for SSH access.')
-param adminUsername string = 'azureuser'
+param adminUsername string
 
 @secure()
 @description('SSH public key for the admin user.')
@@ -16,18 +16,15 @@ param adminSshPublicKey string
 @description('CIDR allowed to SSH to the VM, for example 203.0.113.10/32.')
 param sshSourceAddressPrefix string
 
-@description('CIDR allowed to reach the lab ingress ports. Keep this narrow for test use.')
-param labSourceAddressPrefix string = sshSourceAddressPrefix
-
 @description('VM size. Elastic needs more memory than a tiny general-purpose VM.')
-param vmSize string = 'Standard_D4s_v4'
+param vmSize string
 
 @description('OS disk size in GiB.')
-param osDiskSizeGB int = 128
+param osDiskSizeGB int
 
 @description('Elasticsearch data disk size in GiB. Attached at LUN 0.')
 @minValue(4)
-param dataDiskSizeGB int = 128
+param dataDiskSizeGB int
 
 @allowed([
   'Premium_LRS'
@@ -37,22 +34,22 @@ param dataDiskSizeGB int = 128
   'Standard_LRS'
 ])
 @description('Managed disk storage type for the Elasticsearch data disk.')
-param dataDiskStorageAccountType string = 'Premium_LRS'
+param dataDiskStorageAccountType string
 
 @description('Linux image publisher.')
-param imagePublisher string = 'almalinux'
+param imagePublisher string
 
 @description('Linux image offer.')
-param imageOffer string = 'almalinux-x86_64'
+param imageOffer string
 
 @description('Linux image SKU.')
-param imageSku string = '9-gen2'
+param imageSku string
 
 @description('Linux image version.')
-param imageVersion string = 'latest'
+param imageVersion string
 
 @description('Cloud-init configuration template applied at first boot.')
-param customDataTemplate string = loadTextContent('cloud-init.yaml')
+param customDataTemplate string
 
 var safePrefix = take(toLower(replace(namePrefix, '_', '-')), 40)
 var vnetName = '${safePrefix}-vnet'
@@ -61,7 +58,7 @@ var nsgName = '${safePrefix}-nsg'
 var publicIpName = '${safePrefix}-pip'
 var nicName = '${safePrefix}-nic'
 var vmName = '${safePrefix}-vm'
-var renderedCustomData = replace(customDataTemplate, '__ELK_LAB_SOURCE_CIDR__', labSourceAddressPrefix)
+var renderedCustomData = replace(customDataTemplate, '__ELK_LAB_SOURCE_CIDR__', sshSourceAddressPrefix)
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: vnetName
@@ -118,7 +115,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
             '5601'
             '9200'
           ]
-          sourceAddressPrefix: labSourceAddressPrefix
+          sourceAddressPrefix: sshSourceAddressPrefix
           destinationAddressPrefix: '*'
         }
       }
@@ -167,6 +164,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
     }
     osProfile: {
       computerName: vmName
+      #disable-next-line adminusername-should-not-be-literal
       adminUsername: adminUsername
       customData: base64(renderedCustomData)
       linuxConfiguration: {
