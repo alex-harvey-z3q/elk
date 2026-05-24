@@ -174,14 +174,18 @@ Azure VM for end-to-end testing on real systemd/package infrastructure.
 
 #### Deployment
 
-Before deploying, replace the placeholder SSH key in
-`infra/azure-one-node/main.bicepparam` and export `LAPTOP_IP` with your current
-public IPv4 address. The parameter file appends `/32` automatically so the
-Azure NSG and host firewall open only for that single IP.
+Before deploying, export `LAPTOP_IP` with your current public IPv4 address. The
+parameter file appends `/32` automatically so the Azure NSG and host firewall
+open only for that single IP.
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
 ```
+
+The Rake tasks read the VM admin SSH public key from
+`AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY` when set. Otherwise they use the first
+public key file found at `AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE`,
+`~/.ssh/id_ed25519.pub`, or `~/.ssh/id_rsa.pub`.
 
 The default image is AlmaLinux 9 because it is EL9-compatible and available as a
 straightforward Azure Marketplace image; the image publisher, offer, SKU, and
@@ -224,6 +228,8 @@ The one-node tasks use these additional environment variables:
 
 ```bash
 AZURE_ONE_NODE_DEPLOYMENT_NAME=elk-one-node
+AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY=<ssh-public-key>
+AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
 AZURE_ONE_NODE_TEMPLATE_FILE=infra/azure-one-node/main.bicep
 AZURE_ONE_NODE_PARAMETERS_FILE=infra/azure-one-node/main.bicepparam
 AZURE_ONE_NODE_BUILD_DIR=/tmp/elk-azure-one-node-bicep

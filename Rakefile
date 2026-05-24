@@ -2,6 +2,7 @@ require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet_litmus/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
 require 'fileutils'
+require 'ipaddr'
 require 'tmpdir'
 
 Rake::Task[:lint].clear
@@ -56,6 +57,81 @@ end
 
 def azure_one_node_parameters_file
   ENV.fetch('AZURE_ONE_NODE_PARAMETERS_FILE', 'infra/azure-one-node/main.bicepparam')
+end
+
+def azure_one_node_admin_ssh_public_key_files
+  explicit_public_key_file = ENV['AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE']
+  abort <<~MESSAGE if explicit_public_key_file && !File.file?(explicit_public_key_file)
+    AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE does not point to a readable public key file.
+
+    Current value:
+      AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=#{explicit_public_key_file}
+
+    Example:
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
+  MESSAGE
+
+  [
+    explicit_public_key_file,
+    File.expand_path('~/.ssh/id_ed25519.pub'),
+    File.expand_path('~/.ssh/id_rsa.pub'),
+  ].compact
+end
+
+def ensure_azure_one_node_laptop_ip!
+  laptop_ip = ENV.fetch('LAPTOP_IP', '').strip
+  abort <<~MESSAGE if laptop_ip.empty?
+    Set LAPTOP_IP before running this task.
+
+    Example:
+      export LAPTOP_IP=$(curl -s https://ifconfig.me)
+  MESSAGE
+
+  parsed_ip = IPAddr.new(laptop_ip)
+  return if parsed_ip.ipv4? && !laptop_ip.include?('/')
+
+  abort <<~MESSAGE
+    LAPTOP_IP must be a single IPv4 address without a CIDR suffix.
+
+    Current value:
+      LAPTOP_IP=#{laptop_ip}
+
+    Example:
+      export LAPTOP_IP=$(curl -s https://ifconfig.me)
+  MESSAGE
+rescue IPAddr::InvalidAddressError
+  abort <<~MESSAGE
+    LAPTOP_IP must be a valid IPv4 address.
+
+    Current value:
+      LAPTOP_IP=#{laptop_ip}
+
+    Example:
+      export LAPTOP_IP=$(curl -s https://ifconfig.me)
+  MESSAGE
+end
+
+def ensure_azure_one_node_admin_ssh_public_key!
+  return unless ENV.fetch('AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY', '').strip.empty?
+
+  public_key_file = azure_one_node_admin_ssh_public_key_files.find { |path| File.file?(path) }
+  abort <<~MESSAGE if public_key_file.nil?
+    Set AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY or AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE before running this task.
+
+    Examples:
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
+  MESSAGE
+
+  public_key = File.read(public_key_file).strip
+  abort <<~MESSAGE if public_key.empty?
+    SSH public key file #{public_key_file} is empty.
+
+    Set a different public key file:
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY_FILE=~/.ssh/id_ed25519.pub
+  MESSAGE
+
+  ENV['AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY'] = public_key
 end
 
 def azure_one_node_cloud_init_file
@@ -127,6 +203,8 @@ namespace :azure do
 
     desc 'Compile the one-node Azure Bicep template and parameter file'
     task :build do
+      ensure_azure_one_node_laptop_ip!
+      ensure_azure_one_node_admin_ssh_public_key!
       FileUtils.mkdir_p(azure_one_node_build_dir)
       azure_cli(
         'az', 'bicep', 'build',

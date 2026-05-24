@@ -93,4 +93,11 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
     expect(ssh_source).to eq(lab_source)
     expect(ssh_source).not_to eq('0.0.0.0/0')
   end
+
+  it 'uses an actual SSH public key in the compiled parameters' do
+    public_key = parameters.fetch('parameters').fetch('adminSshPublicKey').fetch('value')
+
+    expect(public_key).to match(/\Assh-(rsa|ed25519) \S+/)
+    expect(public_key).not_to include('REPLACE_WITH_YOUR_PUBLIC_KEY')
+  end
 end
