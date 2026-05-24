@@ -205,7 +205,12 @@ namespace :azure do
         'az', 'deployment', 'group', 'show',
         '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
         '--resource-group', AZURE_RESOURCE_GROUP,
-        '--query', 'properties.outputs',
+        '--query', [
+          'adminUsername:properties.outputs.adminUsername.value',
+          'publicIpAddress:properties.outputs.publicIpAddress.value',
+          'sshCommand:properties.outputs.sshCommand.value',
+          'vmName:properties.outputs.vmName.value',
+        ].join(',').then { |query| "{#{query}}" },
         '--output', 'table'
       )
     end
