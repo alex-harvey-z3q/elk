@@ -138,6 +138,39 @@ def shell_command(*args)
   sh(*args)
 end
 
+def azure_resource_group_exists?
+  capture_command(
+    'az', 'group', 'exists',
+    '--name', AZURE_RESOURCE_GROUP
+  ) == 'true'
+end
+
+def wait_for_azure_resource_group_deleted!
+  while azure_resource_group_exists?
+    puts "Waiting for #{AZURE_RESOURCE_GROUP} to be deleted..."
+    sleep 15
+  end
+
+  puts "#{AZURE_RESOURCE_GROUP} has been deleted."
+end
+
+def destroy_azure_resource_group!(wait: false)
+  unless azure_resource_group_exists?
+    puts "#{AZURE_RESOURCE_GROUP} does not exist."
+    return
+  end
+
+  args = [
+    'az', 'group', 'delete',
+    '--name', AZURE_RESOURCE_GROUP,
+    '--yes',
+  ]
+  args << '--no-wait' unless wait
+
+  azure_cli(*args)
+  wait_for_azure_resource_group_deleted! if wait
+end
+
 def azure_one_node_outputs
   admin_username = capture_command(
     'az', 'vm', 'show',
@@ -310,12 +343,7 @@ namespace :azure do
 
   desc 'Delete the Azure resource group and all lab resources'
   task :destroy do
-    azure_cli(
-      'az', 'group', 'delete',
-      '--name', AZURE_RESOURCE_GROUP,
-      '--yes',
-      '--no-wait'
-    )
+    destroy_azure_resource_group!
   end
 
   namespace :one_node do
@@ -428,6 +456,18 @@ namespace :azure do
       env = { 'TARGET_HOST' => target_host }
 
       sh(env, 'bundle', 'exec', 'rspec', AZURE_ONE_NODE_ACCEPTANCE_SPEC)
+    end
+
+    desc 'Create, test, and destroy the one-node Azure VM'
+    task :acceptance_ephemeral do
+      begin
+        Rake::Task['azure:resource_group'].invoke
+        Rake::Task['azure:one_node:validate'].invoke
+        Rake::Task['azure:one_node:deploy'].invoke
+        Rake::Task['azure:one_node:acceptance'].invoke
+      ensure
+        destroy_azure_resource_group!(wait: true)
+      end
     end
   end
 end

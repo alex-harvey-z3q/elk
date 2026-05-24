@@ -118,6 +118,15 @@ Destroy the lab resource group when finished:
 bundle exec rake azure:destroy
 ```
 
+For a disposable end-to-end run, use the one-node ephemeral acceptance task
+instead. It creates the resource group, validates and deploys the one-node
+topology, runs the acceptance tests, then deletes the resource group and waits
+until Azure reports it has gone:
+
+```bash
+bundle exec rake azure:one_node:acceptance_ephemeral
+```
+
 ### One-Node Topology
 
 The `infra/azure-one-node` Bicep template provisions a single EL9-compatible
@@ -289,6 +298,14 @@ If `azure:one_node:source_ip` reports that your public IP no longer matches the
 NSG allow-list, export the current `LAPTOP_IP` and run
 `bundle exec rake azure:one_node:update_source_ip` before running acceptance
 tests.
+
+To run acceptance tests on fresh infrastructure and always clean up afterwards:
+
+```bash
+export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+bundle exec rake azure:one_node:acceptance_ephemeral
+```
 
 ## Security Note
 
