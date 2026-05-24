@@ -37,6 +37,9 @@ AZURE_ONE_NODE_PARAMETERS_FILE = 'infra/azure-one-node/main.bicepparam'
 AZURE_ONE_NODE_CLOUD_INIT_FILE = 'infra/azure-one-node/cloud-init.yaml'
 AZURE_ONE_NODE_DEPLOYMENT_NAME = 'elk-one-node'
 AZURE_ONE_NODE_NSG_NAME = 'elk-lab-nsg'
+AZURE_ONE_NODE_PUBLIC_IP_NAME = 'elk-lab-pip'
+AZURE_ONE_NODE_SOURCE_FACT_FILE = '/etc/facter/facts.d/elk_lab.yaml'
+AZURE_ONE_NODE_VM_NAME = 'elk-lab-vm'
 AZURE_ONE_NODE_BUILD_DIR = File.join(Dir.tmpdir, 'elk-azure-one-node-bicep')
 AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'main.json')
 AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'main.parameters.json')
@@ -44,12 +47,6 @@ AZURE_ONE_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
 AZURE_ONE_NODE_PUPPET_COLLECTION = 'puppet8'
 AZURE_ONE_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_stack_spec.rb'
 AZURE_ONE_NODE_PUBLIC_IP_SERVICE = 'https://ifconfig.me'
-AZURE_ONE_NODE_OUTPUTS_QUERY = [
-  'adminUsername:properties.outputs.adminUsername.value',
-  'publicIpAddress:properties.outputs.publicIpAddress.value',
-  'sshCommand:properties.outputs.sshCommand.value',
-  'vmName:properties.outputs.vmName.value',
-].join(',').then { |query| "{#{query}}" }
 
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
@@ -142,19 +139,56 @@ def shell_command(*args)
 end
 
 def azure_one_node_outputs
-  outputs = azure_cli_json(
-    'az', 'deployment', 'group', 'show',
-    '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
+  admin_username = capture_command(
+    'az', 'vm', 'show',
     '--resource-group', AZURE_RESOURCE_GROUP,
-    '--query', AZURE_ONE_NODE_OUTPUTS_QUERY,
-    '--output', 'json'
+    '--name', AZURE_ONE_NODE_VM_NAME,
+    '--query', 'osProfile.adminUsername',
+    '--output', 'tsv'
+  )
+  public_ip_address = capture_command(
+    'az', 'network', 'public-ip', 'show',
+    '--resource-group', AZURE_RESOURCE_GROUP,
+    '--name', AZURE_ONE_NODE_PUBLIC_IP_NAME,
+    '--query', 'ipAddress',
+    '--output', 'tsv'
   )
 
+  outputs = {
+    'adminUsername' => admin_username,
+    'publicIpAddress' => public_ip_address,
+    'sshCommand' => "ssh #{admin_username}@#{public_ip_address}",
+    'vmName' => AZURE_ONE_NODE_VM_NAME,
+  }
+
   %w[adminUsername publicIpAddress sshCommand vmName].each do |key|
-    abort "Azure deployment output #{key} is missing. Has #{AZURE_ONE_NODE_DEPLOYMENT_NAME} completed successfully?" if outputs[key].to_s.empty?
+    abort "Azure one-node output #{key} is missing. Has the one-node VM completed successfully?" if outputs[key].to_s.empty?
   end
 
   outputs
+end
+
+def print_azure_one_node_outputs(outputs)
+  rows = [
+    ['AdminUsername', 'PublicIpAddress', 'SshCommand', 'VmName'],
+    [
+      outputs.fetch('adminUsername'),
+      outputs.fetch('publicIpAddress'),
+      outputs.fetch('sshCommand'),
+      outputs.fetch('vmName'),
+    ],
+  ]
+  widths = rows.transpose.map { |column| column.map(&:length).max }
+
+  puts rows[0].each_with_index.map { |value, index| value.ljust(widths[index]) }.join('  ')
+  puts widths.map { |width| '-' * width }.join('  ')
+  puts rows[1].each_with_index.map { |value, index| value.ljust(widths[index]) }.join('  ')
+end
+
+def azure_one_node_source_cidr
+  ensure_azure_one_node_laptop_ip!
+
+  "#{ENV['LAPTOP_IP'].strip}/32"
 end
 
 def azure_one_node_ssh_source_cidr
@@ -186,15 +220,43 @@ def assert_azure_one_node_source_ip!
     Current public IP:
       #{actual_source}
 
-    Redeploy the one-node topology with the current LAPTOP_IP before running
+    Update the one-node source IP with the current LAPTOP_IP before running
     acceptance tests:
 
       export LAPTOP_IP=#{actual_source.delete_suffix('/32')}
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
-      bundle exec rake azure:one_node:build
-      bundle exec rake azure:one_node:validate
-      bundle exec rake azure:one_node:deploy
+      bundle exec rake azure:one_node:update_source_ip
   MESSAGE
+end
+
+def update_azure_one_node_nsg_source!(source_cidr)
+  %w[AllowSsh AllowLabPorts].each do |rule_name|
+    azure_cli(
+      'az', 'network', 'nsg', 'rule', 'update',
+      '--resource-group', AZURE_RESOURCE_GROUP,
+      '--nsg-name', AZURE_ONE_NODE_NSG_NAME,
+      '--name', rule_name,
+      '--source-address-prefixes', source_cidr,
+      '--output', 'none'
+    )
+  end
+end
+
+def update_azure_one_node_fact_source!(outputs, source_cidr)
+  script = [
+    'mkdir -p /etc/facter/facts.d',
+    'espv="$(readlink -f /dev/disk/azure/scsi1/lun0)"',
+    "printf '%s\\n' \"espv: ${espv}\" 'elk_lab_source_cidr: #{source_cidr}' > #{AZURE_ONE_NODE_SOURCE_FACT_FILE}",
+    "chmod 0644 #{AZURE_ONE_NODE_SOURCE_FACT_FILE}",
+  ].join(' && ')
+
+  azure_cli(
+    'az', 'vm', 'run-command', 'invoke',
+    '--resource-group', AZURE_RESOURCE_GROUP,
+    '--name', outputs.fetch('vmName'),
+    '--command-id', 'RunShellScript',
+    '--scripts', script,
+    '--output', 'none'
+  )
 end
 
 def write_azure_one_node_litmus_inventory(outputs)
@@ -324,13 +386,17 @@ namespace :azure do
 
     desc 'Show one-node Azure deployment outputs'
     task :outputs do
-      azure_cli(
-        'az', 'deployment', 'group', 'show',
-        '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
-        '--resource-group', AZURE_RESOURCE_GROUP,
-        '--query', AZURE_ONE_NODE_OUTPUTS_QUERY,
-        '--output', 'table'
-      )
+      print_azure_one_node_outputs(azure_one_node_outputs)
+    end
+
+    desc 'Update NSG and VM facts for the current LAPTOP_IP'
+    task :update_source_ip do
+      source_cidr = azure_one_node_source_cidr
+      outputs = azure_one_node_outputs
+
+      update_azure_one_node_nsg_source!(source_cidr)
+      update_azure_one_node_fact_source!(outputs, source_cidr)
+      puts "Updated #{AZURE_ONE_NODE_NSG_NAME} and #{AZURE_ONE_NODE_SOURCE_FACT_FILE} to #{source_cidr}."
     end
 
     desc 'Write Litmus inventory for the deployed one-node Azure VM'
@@ -345,7 +411,7 @@ namespace :azure do
     end
 
     desc 'Check Litmus SSH connectivity to the deployed one-node Azure VM'
-    task check_connectivity: [:inventory, :source_ip] do
+    task check_connectivity: [:inventory] do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       Rake::Task['litmus:check_connectivity'].invoke(target_host)
     end

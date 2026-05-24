@@ -26,7 +26,9 @@ class profile::nginx (
 
   include nginx
 
-  nginx::resource::server { $facts['fqdn']:
+  $server_name = pick($facts.dig('networking', 'fqdn'), $facts['fqdn'], $facts['hostname'])
+
+  nginx::resource::server { $server_name:
     proxy => "http://$backend_host:$backend_port",
   }
 

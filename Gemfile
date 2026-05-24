@@ -10,6 +10,8 @@ group :tests do
 end
 
 group :system_tests do
+  gem 'bcrypt_pbkdf', '>= 1.0', '< 2.0'
+  gem 'ed25519', '>= 1.2', '< 2.0'
   gem 'puppet_litmus', '~> 2.5'
   gem 'serverspec', '~> 2.0'
 end

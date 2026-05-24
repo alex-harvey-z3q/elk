@@ -82,20 +82,8 @@ profile::elasticsearch::data_node::jvm_options:
   - "-XX:HeapDumpPath=%{lookup('profile::elasticsearch::data_node::datadir')}"
 profile::elasticsearch::data_node::vm_swappiness: 1
 profile::elasticsearch::data_node::vm_max_map_count: 262144
-profile::elasticsearch::data_node::ilm_policies:
-  logstash-lab:
-    content:
-      policy:
-        phases:
-          hot:
-            actions: {}
-          delete:
-            min_age: 20d
-            actions:
-              delete: {}
-profile::elasticsearch::data_node::es_templates:
-  logstash-lab:
-    source: puppet:///modules/profile/logstash/logstash.json
+profile::elasticsearch::data_node::ilm_policies: {}
+profile::elasticsearch::data_node::es_templates: {}
 
 # profile::kibana
 kibana::ensure: present

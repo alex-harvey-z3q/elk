@@ -15,19 +15,18 @@ class AcceptanceSetup
   def prepare
     system('bundle exec rake spec_prep') || raise('spec_prep failed')
     stage_modules do |module_archive|
-      shell("rm -rf #{REMOTE_TMP} #{MODULE_DIR} #{CODE_DIR}/hieradata #{FACT_DIR}")
-      shell("mkdir -p #{REMOTE_TMP} #{MODULE_DIR} #{CODE_DIR} #{FACT_DIR}")
+      run_shell("rm -rf #{REMOTE_TMP} #{MODULE_DIR} #{CODE_DIR}/hieradata #{FACT_DIR}/facts.d")
+      run_shell("mkdir -p #{REMOTE_TMP} #{MODULE_DIR} #{CODE_DIR} #{FACT_DIR}")
       bolt_upload_file(module_archive, "#{REMOTE_TMP}/modules.tar.gz")
-      shell("tar -xzf #{REMOTE_TMP}/modules.tar.gz -C #{MODULE_DIR}")
+      run_shell("tar -xzf #{REMOTE_TMP}/modules.tar.gz -C #{MODULE_DIR}")
     end
 
     bolt_upload_file('spec/fixtures/hiera.yaml.acceptance', "#{CODE_DIR}/hiera.yaml")
     bolt_upload_file('spec/fixtures/hieradata', "#{CODE_DIR}/hieradata")
-    bolt_upload_file('spec/fixtures/facts.d', FACT_DIR)
 
-    shell('dnf -y install iptables-services lvm2 curl')
-    shell('systemctl enable --now iptables.service')
-    shell('systemctl enable --now ip6tables.service')
+    run_shell('dnf -y install iptables-services lvm2 curl')
+    run_shell('systemctl enable --now iptables.service')
+    run_shell('systemctl enable --now ip6tables.service')
   end
 
   private

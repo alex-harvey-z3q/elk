@@ -3,11 +3,6 @@ require 'spec_helper_acceptance'
 pp = <<-EOS
 stage { 'pre': before => Stage['main'] }
 
-Firewall {
-  require => Class['profile::base::firewall::pre'],
-  before  => Class['profile::base::firewall::post'],
-}
-
 include role::elk_stack
 EOS
 
@@ -62,11 +57,11 @@ describe 'role::elk_stack' do
     end
 
     it 'indexes and searches a typeless document' do
-      shell(
+      run_shell(
         'curl -s -XPUT http://localhost:9200/blog/_doc/dilbert ' \
         '-H "Content-Type: application/json" -d "{\"name\":\"dilbert\"}"'
       )
-      shell("curl -s 'http://localhost:9200/blog/_search?q=name:dilbert&pretty'") do |result|
+      run_shell("curl -s 'http://localhost:9200/blog/_search?q=name:dilbert&pretty'") do |result|
         expect(result.stdout).to match /"_id"\s*:\s*"dilbert"/
       end
     end

@@ -1,2 +1,2 @@
-espv=/dev/disk/azure/scsi1/lun0
+espv=/dev/sdb
 elk_lab_source_cidr=203.0.113.10/32

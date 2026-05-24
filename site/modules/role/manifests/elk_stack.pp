@@ -13,17 +13,4 @@ class role::elk_stack {
   Service['elasticsearch'] -> Service['kibana']
   Service['elasticsearch'] -> Service['logstash']
   Service['logstash'] -> Service['filebeat']
-
-  elasticsearch::template { 'lab-defaults':
-    content => {
-      'index_patterns' => ['*'],
-      'settings' => {
-        'index' => {
-          'number_of_replicas' => '0',
-        },
-      }
-    },
-  }
-
-  Elasticsearch::Template['lab-defaults'] -> Service['logstash']
 }

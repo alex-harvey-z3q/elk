@@ -190,12 +190,12 @@ The one-node topology otherwise uses fixed lab values recorded in
 `Standard_D4s_v4`, AlmaLinux 9, and a 128 GiB managed data disk.
 
 The one-node template also attaches a managed data disk at LUN 0. Cloud-init
-publishes that Azure LUN symlink as the `espv` external fact, so
-`profile::elasticsearch::data_node` can build the Elasticsearch LVM volume at
-`/srv/es` without relying on volatile `/dev/sd*` device names. Cloud-init also
-publishes `elk_lab_source_cidr` from the same `LAPTOP_IP`-derived CIDR used by
-the Azure network security group, so Puppet opens the lab ports only to that
-trusted client on the VM firewall.
+resolves that Azure LUN symlink and publishes the resulting block device as the
+`espv` external fact, so `profile::elasticsearch::data_node` can build the
+Elasticsearch LVM volume at `/srv/es`. Cloud-init also publishes
+`elk_lab_source_cidr` from the same `LAPTOP_IP`-derived CIDR used by the Azure
+network security group, so Puppet opens the lab ports only to that trusted
+client on the VM firewall.
 
 Log in to Azure and choose the subscription:
 
@@ -214,6 +214,16 @@ bundle exec rake azure:one_node:outputs
 ```
 
 The deployment output includes the public IP and SSH command.
+
+If your public IP changes after the VM has been created, update the lab
+allow-list instead of redeploying the VM. Azure does not allow `customData` to
+change after VM creation, and the one-node bootstrap data includes the source
+CIDR used by Puppet firewall facts.
+
+```bash
+export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+bundle exec rake azure:one_node:update_source_ip
+```
 
 ### Multi-Node Topology
 
@@ -276,8 +286,9 @@ TARGET_HOST=<public-ip> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
 ```
 
 If `azure:one_node:source_ip` reports that your public IP no longer matches the
-NSG allow-list, export the current `LAPTOP_IP` and redeploy the one-node
-topology before running acceptance tests.
+NSG allow-list, export the current `LAPTOP_IP` and run
+`bundle exec rake azure:one_node:update_source_ip` before running acceptance
+tests.
 
 ## Security Note
 
