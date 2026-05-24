@@ -20,7 +20,7 @@ param sshSourceAddressPrefix string
 param labSourceAddressPrefix string = sshSourceAddressPrefix
 
 @description('VM size. Elastic needs more memory than a tiny general-purpose VM.')
-param vmSize string = 'Standard_D4s_v5'
+param vmSize string = 'Standard_D4s_v4'
 
 @description('OS disk size in GiB.')
 param osDiskSizeGB int = 128

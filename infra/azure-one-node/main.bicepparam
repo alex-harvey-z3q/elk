@@ -9,4 +9,5 @@ var laptopIpCidr = '${laptopIp}/32'
 
 param sshSourceAddressPrefix = laptopIpCidr
 param labSourceAddressPrefix = laptopIpCidr
+param vmSize = 'Standard_D4s_v4'
 param dataDiskSizeGB = 128
