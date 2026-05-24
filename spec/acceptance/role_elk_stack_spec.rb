@@ -9,6 +9,7 @@ EOS
 describe 'role::elk_stack' do
   context 'puppet apply' do
     it 'applies idempotently' do
+      apply_manifest(pp, catch_failures: true, hiera_config: '/etc/puppetlabs/code/hiera.yaml')
       idempotent_apply(pp, hiera_config: '/etc/puppetlabs/code/hiera.yaml')
     end
   end
@@ -58,7 +59,7 @@ describe 'role::elk_stack' do
 
     it 'indexes and searches a typeless document' do
       run_shell(
-        'curl -s -XPUT http://localhost:9200/blog/_doc/dilbert ' \
+        'curl -s -XPUT "http://localhost:9200/blog/_doc/dilbert?refresh=wait_for" ' \
         '-H "Content-Type: application/json" -d "{\"name\":\"dilbert\"}"'
       )
       run_shell("curl -s 'http://localhost:9200/blog/_search?q=name:dilbert&pretty'") do |result|
