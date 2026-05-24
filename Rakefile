@@ -3,7 +3,10 @@ require 'puppet_litmus/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
 require 'fileutils'
 require 'ipaddr'
+require 'json'
+require 'open3'
 require 'tmpdir'
+require 'yaml'
 
 Rake::Task[:lint].clear
 PuppetLint.configuration.relative = true
@@ -33,9 +36,20 @@ AZURE_ONE_NODE_TEMPLATE_FILE = 'infra/azure-one-node/main.bicep'
 AZURE_ONE_NODE_PARAMETERS_FILE = 'infra/azure-one-node/main.bicepparam'
 AZURE_ONE_NODE_CLOUD_INIT_FILE = 'infra/azure-one-node/cloud-init.yaml'
 AZURE_ONE_NODE_DEPLOYMENT_NAME = 'elk-one-node'
+AZURE_ONE_NODE_NSG_NAME = 'elk-lab-nsg'
 AZURE_ONE_NODE_BUILD_DIR = File.join(Dir.tmpdir, 'elk-azure-one-node-bicep')
 AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'main.json')
 AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'main.parameters.json')
+AZURE_ONE_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
+AZURE_ONE_NODE_PUPPET_COLLECTION = 'puppet8'
+AZURE_ONE_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_stack_spec.rb'
+AZURE_ONE_NODE_PUBLIC_IP_SERVICE = 'https://ifconfig.me'
+AZURE_ONE_NODE_OUTPUTS_QUERY = [
+  'adminUsername:properties.outputs.adminUsername.value',
+  'publicIpAddress:properties.outputs.publicIpAddress.value',
+  'sshCommand:properties.outputs.sshCommand.value',
+  'vmName:properties.outputs.vmName.value',
+].join(',').then { |query| "{#{query}}" }
 
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
@@ -109,8 +123,117 @@ def azure_cli(*args)
   sh(*args)
 end
 
+def azure_cli_json(*args)
+  stdout, stderr, status = Open3.capture3(*args)
+  abort stderr unless status.success?
+
+  JSON.parse(stdout)
+end
+
+def capture_command(*args)
+  stdout, stderr, status = Open3.capture3(*args)
+  abort stderr unless status.success?
+
+  stdout.strip
+end
+
 def shell_command(*args)
   sh(*args)
+end
+
+def azure_one_node_outputs
+  outputs = azure_cli_json(
+    'az', 'deployment', 'group', 'show',
+    '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
+    '--resource-group', AZURE_RESOURCE_GROUP,
+    '--query', AZURE_ONE_NODE_OUTPUTS_QUERY,
+    '--output', 'json'
+  )
+
+  %w[adminUsername publicIpAddress sshCommand vmName].each do |key|
+    abort "Azure deployment output #{key} is missing. Has #{AZURE_ONE_NODE_DEPLOYMENT_NAME} completed successfully?" if outputs[key].to_s.empty?
+  end
+
+  outputs
+end
+
+def azure_one_node_ssh_source_cidr
+  capture_command(
+    'az', 'network', 'nsg', 'rule', 'show',
+    '--resource-group', AZURE_RESOURCE_GROUP,
+    '--nsg-name', AZURE_ONE_NODE_NSG_NAME,
+    '--name', 'AllowSsh',
+    '--query', 'sourceAddressPrefix',
+    '--output', 'tsv'
+  )
+end
+
+def current_public_ip
+  capture_command('curl', '-s', AZURE_ONE_NODE_PUBLIC_IP_SERVICE)
+end
+
+def assert_azure_one_node_source_ip!
+  allowed_source = azure_one_node_ssh_source_cidr
+  actual_source = "#{current_public_ip}/32"
+  return if allowed_source == actual_source
+
+  abort <<~MESSAGE
+    Current public IP does not match the Azure one-node SSH allow-list.
+
+    Azure NSG AllowSsh source:
+      #{allowed_source}
+
+    Current public IP:
+      #{actual_source}
+
+    Redeploy the one-node topology with the current LAPTOP_IP before running
+    acceptance tests:
+
+      export LAPTOP_IP=#{actual_source.delete_suffix('/32')}
+      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+      bundle exec rake azure:one_node:build
+      bundle exec rake azure:one_node:validate
+      bundle exec rake azure:one_node:deploy
+  MESSAGE
+end
+
+def write_azure_one_node_litmus_inventory(outputs)
+  inventory = {
+    'groups' => [
+      {
+        'name' => 'ssh_nodes',
+        'targets' => [
+          {
+            'uri' => outputs.fetch('publicIpAddress'),
+            'config' => {
+              'transport' => 'ssh',
+              'ssh' => {
+                'user' => outputs.fetch('adminUsername'),
+                'run-as' => 'root',
+                'host-key-check' => false,
+              },
+            },
+            'facts' => {
+              'platform' => 'almalinux-9-x86_64',
+              'provisioner' => 'azure',
+            },
+            'vars' => {
+              'role' => 'elk_stack',
+              'vm_name' => outputs.fetch('vmName'),
+            },
+          },
+        ],
+      },
+      {
+        'name' => 'winrm_nodes',
+        'targets' => [],
+      },
+    ],
+  }
+
+  FileUtils.mkdir_p(File.dirname(AZURE_ONE_NODE_LITMUS_INVENTORY_FILE))
+  File.write(AZURE_ONE_NODE_LITMUS_INVENTORY_FILE, YAML.dump(inventory))
+  puts "Wrote #{AZURE_ONE_NODE_LITMUS_INVENTORY_FILE} for #{outputs.fetch('publicIpAddress')}"
 end
 
 namespace :azure do
@@ -205,14 +328,40 @@ namespace :azure do
         'az', 'deployment', 'group', 'show',
         '--name', AZURE_ONE_NODE_DEPLOYMENT_NAME,
         '--resource-group', AZURE_RESOURCE_GROUP,
-        '--query', [
-          'adminUsername:properties.outputs.adminUsername.value',
-          'publicIpAddress:properties.outputs.publicIpAddress.value',
-          'sshCommand:properties.outputs.sshCommand.value',
-          'vmName:properties.outputs.vmName.value',
-        ].join(',').then { |query| "{#{query}}" },
+        '--query', AZURE_ONE_NODE_OUTPUTS_QUERY,
         '--output', 'table'
       )
+    end
+
+    desc 'Write Litmus inventory for the deployed one-node Azure VM'
+    task :inventory do
+      write_azure_one_node_litmus_inventory(azure_one_node_outputs)
+    end
+
+    desc 'Check current public IP against the Azure one-node SSH allow-list'
+    task :source_ip do
+      assert_azure_one_node_source_ip!
+      puts "Current public IP matches #{AZURE_ONE_NODE_NSG_NAME} AllowSsh."
+    end
+
+    desc 'Check Litmus SSH connectivity to the deployed one-node Azure VM'
+    task check_connectivity: [:inventory, :source_ip] do
+      target_host = azure_one_node_outputs.fetch('publicIpAddress')
+      Rake::Task['litmus:check_connectivity'].invoke(target_host)
+    end
+
+    desc 'Install the Puppet agent on the deployed one-node Azure VM'
+    task install_agent: [:check_connectivity] do
+      target_host = azure_one_node_outputs.fetch('publicIpAddress')
+      Rake::Task['litmus:install_agent'].invoke(AZURE_ONE_NODE_PUPPET_COLLECTION, target_host)
+    end
+
+    desc 'Run acceptance tests against the deployed one-node Azure VM'
+    task acceptance: [:install_agent] do
+      target_host = azure_one_node_outputs.fetch('publicIpAddress')
+      env = { 'TARGET_HOST' => target_host }
+
+      sh(env, 'bundle', 'exec', 'rspec', AZURE_ONE_NODE_ACCEPTANCE_SPEC)
     end
   end
 end

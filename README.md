@@ -213,9 +213,7 @@ bundle exec rake azure:one_node:deploy
 bundle exec rake azure:one_node:outputs
 ```
 
-The deployment output includes the public IP and SSH command. The next testing
-step is to turn those outputs into a Litmus/Bolt inventory entry so the
-acceptance specs can target the Azure VM directly.
+The deployment output includes the public IP and SSH command.
 
 ### Multi-Node Topology
 
@@ -255,14 +253,31 @@ bundle exec rake azure:one_node:cloud_init_schema
 bundle exec rake azure:one_node:assert_compiled
 ```
 
-Acceptance tests are intended to run against the Azure VM created by the Bicep
-deployment. The next step is to generate `spec/fixtures/litmus_inventory.yaml`
-from `bundle exec rake azure:one_node:outputs`, install the Puppet 8 agent on
-that target, and run:
+Run the acceptance tests against the Azure VM created by the Bicep deployment:
 
 ```bash
-TARGET_HOST=<azure-target-name> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
+bundle exec rake azure:one_node:acceptance
 ```
+
+That task writes `spec/fixtures/litmus_inventory.yaml` from the Azure deployment
+outputs, checks that your current public IP still matches the Azure SSH
+allow-list, installs the Puppet 8 agent with Litmus, stages the control repo
+fixtures on the VM, applies `role::elk_stack`, and runs
+`spec/acceptance/role_elk_stack_spec.rb`.
+
+The acceptance flow can also be run in smaller steps:
+
+```bash
+bundle exec rake azure:one_node:inventory
+bundle exec rake azure:one_node:source_ip
+bundle exec rake azure:one_node:check_connectivity
+bundle exec rake azure:one_node:install_agent
+TARGET_HOST=<public-ip> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
+```
+
+If `azure:one_node:source_ip` reports that your public IP no longer matches the
+NSG allow-list, export the current `LAPTOP_IP` and redeploy the one-node
+topology before running acceptance tests.
 
 ## Security Note
 
