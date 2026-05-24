@@ -61,7 +61,7 @@ testing, and demonstration of a roles-and-profiles Puppet control repo.
                  +---------+---------+               |
                  | Elasticsearch     |               |
                  | single node       |               |
-                 | ILM + templates   |               |
+                 | lab security off  |               |
                  +---------+---------+               |
                            ^                         |
                            | HTTP :9200              |
@@ -106,7 +106,8 @@ Each Azure deployment topology lives in its own directory under `infra/`. The
 current topology is `infra/azure-one-node`; a future multi-node topology can be
 added as `infra/azure-multi-node` without reshaping the one-node test target.
 
-Create the shared resource group once before deploying a topology:
+For manual deployment and iteration, create the shared resource group before
+deploying a topology:
 
 ```bash
 bundle exec rake azure:resource_group
@@ -116,15 +117,6 @@ Destroy the lab resource group when finished:
 
 ```bash
 bundle exec rake azure:destroy
-```
-
-For a disposable end-to-end run, use the one-node ephemeral acceptance task
-instead. It creates the resource group, validates and deploys the one-node
-topology, runs the acceptance tests, then deletes the resource group and waits
-until Azure reports it has gone:
-
-```bash
-bundle exec rake azure:one_node:acceptance_ephemeral
 ```
 
 ### One-Node Topology
@@ -248,10 +240,10 @@ Install Ruby dependencies:
 bundle install
 ```
 
-Run syntax, lint, and catalog tests:
+Run static checks and catalog tests:
 
 ```bash
-bundle exec rake unit
+bundle exec rake test
 ```
 
 Run the Azure static checks. These lint the Bicep template, validate the
@@ -272,16 +264,28 @@ bundle exec rake azure:one_node:cloud_init_schema
 bundle exec rake azure:one_node:assert_compiled
 ```
 
-Run the acceptance tests against the Azure VM created by the Bicep deployment:
+Run acceptance tests on fresh Azure infrastructure and clean up afterwards:
+
+```bash
+export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+bundle exec rake azure:one_node:acceptance_ephemeral
+```
+
+That task creates the resource group, validates and deploys the one-node
+topology, runs the acceptance tests, then deletes the resource group and waits
+until Azure reports it has gone.
+
+To run the acceptance tests against an existing Azure VM created by the Bicep
+deployment:
 
 ```bash
 bundle exec rake azure:one_node:acceptance
 ```
 
-That task writes `spec/fixtures/litmus_inventory.yaml` from the Azure deployment
-outputs, checks that your current public IP still matches the Azure SSH
-allow-list, installs the Puppet 8 agent with Litmus, stages the control repo
-fixtures on the VM, applies `role::elk_stack`, and runs
+That task writes `spec/fixtures/litmus_inventory.yaml` from the Azure resources,
+checks SSH connectivity, installs the Puppet 8 agent with Litmus, stages the
+control repo fixtures on the VM, applies `role::elk_stack`, and runs
 `spec/acceptance/role_elk_stack_spec.rb`.
 
 The acceptance flow can also be run in smaller steps:
@@ -294,17 +298,12 @@ bundle exec rake azure:one_node:install_agent
 TARGET_HOST=<public-ip> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
 ```
 
-If `azure:one_node:source_ip` reports that your public IP no longer matches the
-NSG allow-list, export the current `LAPTOP_IP` and run
-`bundle exec rake azure:one_node:update_source_ip` before running acceptance
-tests.
-
-To run acceptance tests on fresh infrastructure and always clean up afterwards:
+If your public IP changes while reusing an existing VM, update the Azure NSG and
+VM firewall fact before running acceptance tests again:
 
 ```bash
 export LAPTOP_IP="$(curl -s https://ifconfig.me)"
-export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
-bundle exec rake azure:one_node:acceptance_ephemeral
+bundle exec rake azure:one_node:update_source_ip
 ```
 
 ## Security Note
