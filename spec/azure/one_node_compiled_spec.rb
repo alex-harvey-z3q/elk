@@ -102,6 +102,8 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
   it 'keeps Azure one-node lab data in the parameter file' do
     expect(parameters.fetch('parameters').keys).to contain_exactly(
       'location',
+      'resourceGroupName',
+      'deploymentName',
       'namePrefix',
       'adminUsername',
       'adminSshPublicKey',
@@ -114,12 +116,16 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
       'imageOffer',
       'imageSku',
       'imageVersion',
-      'customDataTemplate'
+      'customDataTemplate',
+      'sourceFactFile'
     )
     expect(parameter_value('location')).to eq('australiaeast')
+    expect(parameter_value('resourceGroupName')).to eq('rg-elk-lab')
+    expect(parameter_value('deploymentName')).to eq('elk-one-node')
     expect(parameter_value('adminUsername')).to eq('azureuser')
     expect(parameter_value('vmSize')).to eq('Standard_D4s_v4')
     expect(parameter_value('dataDiskStorageAccountType')).to eq('Premium_LRS')
     expect(parameter_value('imageSku')).to eq('9-gen2')
+    expect(parameter_value('sourceFactFile')).to eq('/etc/facter/facts.d/elk_lab.yaml')
   end
 end
