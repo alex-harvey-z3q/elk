@@ -167,6 +167,8 @@ AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_MULTI_NODE_BUILD_DIR
 AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
 AZURE_MULTI_NODE_PUPPET_COLLECTION = 'puppet8'
 AZURE_MULTI_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_multi_node_spec.rb'
+AZURE_DUMMY_ADMIN_SSH_PUBLIC_KEY = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDummyStaticKeyForAzureMetadataReads ci@example'
+AZURE_DUMMY_LAPTOP_IP = '203.0.113.10'
 
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
@@ -264,43 +266,86 @@ def shell_command(*args)
   sh(*args)
 end
 
-def bicepparam_string(file, name)
-  pattern = /^\s*(?:param|var)\s+#{Regexp.escape(name)}\s*=\s*'([^']+)'\s*$/
-  match = File.read(file).match(pattern)
-  abort "Could not find #{name} in #{file}" unless match
-  match[1]
+def build_azure_bicep_parameters!(parameters_file:, compiled_parameters_file:, env: {})
+  FileUtils.mkdir_p(File.dirname(compiled_parameters_file))
+  stdout, stderr, status = Open3.capture3(env, 'az', 'bicep', 'build-params', '--file', parameters_file, '--outfile', compiled_parameters_file)
+  puts stdout unless stdout.empty?
+  abort stderr unless status.success?
+end
+
+def azure_metadata_env
+  {
+    'AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY' => ENV.fetch(
+      'AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY',
+      AZURE_DUMMY_ADMIN_SSH_PUBLIC_KEY
+    ),
+    'AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY' => ENV.fetch(
+      'AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY',
+      AZURE_DUMMY_ADMIN_SSH_PUBLIC_KEY
+    ),
+    'LAPTOP_IP' => ENV.fetch('LAPTOP_IP', AZURE_DUMMY_LAPTOP_IP),
+  }
+end
+
+def compiled_bicepparam_values(parameters_file, compiled_parameters_file)
+  build_azure_bicep_parameters!(
+    parameters_file: parameters_file,
+    compiled_parameters_file: compiled_parameters_file,
+    env: azure_metadata_env
+  )
+  JSON.parse(File.read(compiled_parameters_file)).
+    fetch('parameters').
+    transform_values { |parameter| parameter.fetch('value') }
+end
+
+def one_node_bicepparam_values
+  @one_node_bicepparam_values ||= compiled_bicepparam_values(
+    AZURE_ONE_NODE_PARAMETERS_FILE,
+    AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
+  )
+end
+
+def multi_node_bicepparam_values
+  @multi_node_bicepparam_values ||= compiled_bicepparam_values(
+    AZURE_MULTI_NODE_PARAMETERS_FILE,
+    AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
+  )
+end
+
+def bicepparam_value(values, name)
+  values.fetch(name) { abort "Could not find #{name} in compiled Bicep parameters" }
 end
 
 def azure_resource_group
-  bicepparam_string(AZURE_ONE_NODE_PARAMETERS_FILE, 'resourceGroupName')
+  bicepparam_value(one_node_bicepparam_values, 'resourceGroupName')
 end
 
 def azure_location
-  bicepparam_string(AZURE_ONE_NODE_PARAMETERS_FILE, 'location')
+  bicepparam_value(one_node_bicepparam_values, 'location')
 end
 
 def azure_one_node_deployment_name
-  bicepparam_string(AZURE_ONE_NODE_PARAMETERS_FILE, 'deploymentName')
+  bicepparam_value(one_node_bicepparam_values, 'deploymentName')
 end
 
 def azure_multi_node_deployment_name
-  bicepparam_string(AZURE_MULTI_NODE_PARAMETERS_FILE, 'deploymentName')
+  bicepparam_value(multi_node_bicepparam_values, 'deploymentName')
 end
 
 def azure_one_node_nsg_name
-  "#{bicepparam_string(AZURE_ONE_NODE_PARAMETERS_FILE, 'namePrefix')}-nsg"
+  "#{bicepparam_value(one_node_bicepparam_values, 'namePrefix')}-nsg"
 end
 
 def azure_multi_node_nsg_name
-  "#{bicepparam_string(AZURE_MULTI_NODE_PARAMETERS_FILE, 'namePrefix')}-nsg"
+  "#{bicepparam_value(multi_node_bicepparam_values, 'namePrefix')}-nsg"
 end
 
 def azure_one_node_source_fact_file
-  bicepparam_string(AZURE_ONE_NODE_PARAMETERS_FILE, 'sourceFactFile')
+  bicepparam_value(one_node_bicepparam_values, 'sourceFactFile')
 end
 
 def azure_multi_node_source_fact_file
-  bicepparam_string(AZURE_MULTI_NODE_PARAMETERS_FILE, 'sourceFactFile')
+  bicepparam_value(multi_node_bicepparam_values, 'sourceFactFile')
 end
 
 def azure_resource_group_exists?
@@ -322,11 +367,7 @@ def destroy_azure_resource_group!(wait: false)
     return
   end
 
-  args = [
-    'az', 'group', 'delete',
-    '--name', azure_resource_group,
-    '--yes',
-  ]
+  args = ['az', 'group', 'delete', '--name', azure_resource_group, '--yes']
   args << '--no-wait' unless wait
 
   azure_cli(*args)
