@@ -7,8 +7,12 @@
 #  |
 #  +-- lint
 #  |    |
+#  |    +-- ruby_syntax
+#  |    +-- puppet_parser_validate
+#  |    +-- puppet_epp_validate
 #  |    +-- yaml_lint
 #  |    +-- rubocop
+#  |    +-- bundle_audit
 #  |
 #  +-- spec
 #
@@ -119,6 +123,7 @@ require 'fileutils'
 require 'ipaddr'
 require 'json'
 require 'open3'
+require 'rbconfig'
 require 'tmpdir'
 require 'yaml'
 
@@ -155,6 +160,20 @@ YAML_LINT_FILES = [
   'infra/azure-multi-node/cloud-init.yaml'
 ].freeze
 
+RUBY_SYNTAX_FILES = FileList[
+  'Rakefile',
+  'spec/**/*.rb'
+].to_a.freeze
+
+PUPPET_MANIFEST_FILES = FileList[
+  'manifests/**/*.pp',
+  'site/**/*.pp'
+].to_a.freeze
+
+PUPPET_EPP_FILES = FileList[
+  'site/**/*.epp'
+].to_a.freeze
+
 AZURE_ONE_NODE_TEMPLATE_FILE = 'infra/azure-one-node/main.bicep'
 AZURE_ONE_NODE_PARAMETERS_FILE = 'infra/azure-one-node/main.bicepparam'
 AZURE_ONE_NODE_CLOUD_INIT_FILE = 'infra/azure-one-node/cloud-init.yaml'
@@ -182,7 +201,38 @@ task :yaml_lint do
   sh('yamllint', '-c', 'yamllint.yml', *YAML_LINT_FILES)
 end
 
-Rake::Task[:lint].enhance(%i[yaml_lint rubocop])
+desc 'Run Ruby syntax checks over Rakefile and specs'
+task :ruby_syntax do
+  RUBY_SYNTAX_FILES.each do |file|
+    sh(RbConfig.ruby, '-c', file)
+  end
+end
+
+desc 'Validate Puppet manifests with the Puppet parser'
+task :puppet_parser_validate do
+  sh('bundle', 'exec', 'puppet', 'parser', 'validate', *PUPPET_MANIFEST_FILES)
+end
+
+desc 'Validate Puppet EPP templates'
+task :puppet_epp_validate do
+  sh('bundle', 'exec', 'puppet', 'epp', 'validate', *PUPPET_EPP_FILES)
+end
+
+desc 'Check bundled Ruby gems for known vulnerabilities'
+task :bundle_audit do
+  sh('bundle', 'exec', 'bundle-audit', 'check', '--update')
+end
+
+Rake::Task[:lint].enhance(
+  %i[
+    ruby_syntax
+    puppet_parser_validate
+    puppet_epp_validate
+    yaml_lint
+    rubocop
+    bundle_audit
+  ]
+)
 
 desc 'Run static checks and unit tests'
 task test: %i[lint spec]
