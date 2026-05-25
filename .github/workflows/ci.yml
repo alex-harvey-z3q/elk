@@ -19,6 +19,10 @@ jobs:
         ssh-ed25519
         AAAAC3NzaC1lZDI1NTE5AAAAIDummyStaticKeyForAzureOneNodeTests
         ci@example
+      AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY: >-
+        ssh-ed25519
+        AAAAC3NzaC1lZDI1NTE5AAAAIDummyStaticKeyForAzureMultiNodeTests
+        ci@example
     steps:
       - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1
@@ -38,3 +42,4 @@ jobs:
       - run: bundle exec rake spec_prep
       - run: bundle exec rake spec
       - run: bundle exec rake azure:one_node:static
+      - run: bundle exec rake azure:multi_node:static
