@@ -11,7 +11,7 @@ end
 
 require 'puppetlabs_spec_helper/module_spec_helper'
 
-FileUtils::mkdir_p 'catalogs'
+FileUtils.mkdir_p 'catalogs'
 
 RSpec.configure do |c|
   c.color        = true
@@ -22,36 +22,36 @@ RSpec.configure do |c|
 
   c.filter_run_excluding azure_static: true unless ENV['RUN_AZURE_STATIC_SPECS'] == 'true'
 
-  c.default_facts   = {
-    :concat_basedir  => '/var/lib/puppet/concat',
-    :espv            => '/dev/sdb',
-    :elk_lab_source_cidr => '203.0.113.10/32',
-    :id              => '1',
-    :is_virtual      => true,
-    :kernel          => 'Linux',
-    :operatingsystem => 'Rocky',
-    :operatingsystemmajrelease => '9',
-    :operatingsystemrelease    => '9.3',
-    :os => {
+  c.default_facts = {
+    concat_basedir: '/var/lib/puppet/concat',
+    espv: '/dev/sdb',
+    elk_lab_source_cidr: '203.0.113.10/32',
+    id: '1',
+    is_virtual: true,
+    kernel: 'Linux',
+    operatingsystem: 'Rocky',
+    operatingsystemmajrelease: '9',
+    operatingsystemrelease: '9.3',
+    os: {
       'family' => 'RedHat',
       'name' => 'Rocky',
       'release' => {
         'major' => '9',
-        'full' => '9.3',
-      },
+        'full' => '9.3'
+      }
     },
-    :networking => {
+    networking: {
       'ip' => '10.10.2.15',
       'fqdn' => 'myhost.example.com',
       'hostname' => 'myhost',
-      'domain' => 'example.com',
+      'domain' => 'example.com'
     },
-    :osfamily        => 'RedHat',
-    :path            => ['/bin', '/usr/bin'],
-    :puppetversion   => '8.10.0',
-    :selinux         => false,
-    :hostname        => 'myhost',
-    :domain          => 'example.com',
-    :fqdn            => 'myhost.example.com',
+    osfamily: 'RedHat',
+    path: ['/bin', '/usr/bin'],
+    puppetversion: '8.10.0',
+    selinux: false,
+    hostname: 'myhost',
+    domain: 'example.com',
+    fqdn: 'myhost.example.com'
   }
 end

@@ -8,6 +8,7 @@ spec/fixtures/modules
 spec/fixtures/.tmp
 spec/fixtures/litmus_inventory.yaml
 .bundle
+.rubocop_cache/
 catalogs
 .yardoc/
 infra/azure-one-node/main.json

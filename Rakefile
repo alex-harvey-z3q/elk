@@ -8,6 +8,7 @@
 #  +-- lint
 #  |    |
 #  |    +-- yaml_lint
+#  |    +-- rubocop
 #  |
 #  +-- spec
 #
@@ -113,6 +114,7 @@
 require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet_litmus/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
+require 'rubocop/rake_task'
 require 'fileutils'
 require 'ipaddr'
 require 'json'
@@ -121,17 +123,22 @@ require 'tmpdir'
 require 'yaml'
 
 Rake::Task[:lint].clear
+Rake::Task[:rubocop].clear if Rake::Task.task_defined?(:rubocop)
+RuboCop::RakeTask.new(:rubocop) do |task|
+  task.options = ['--cache-root', '.rubocop_cache']
+end
+
 PuppetLint.configuration.relative = true
 PuppetLint::RakeTask.new(:lint) do |config|
   config.fail_on_warnings = true
-  config.disable_checks = [
-    'arrow_alignment',
-    'arrow_on_right_operand_line',
-    'documentation',
-    'legacy_facts',
-    'variables_not_enclosed',
+  config.disable_checks = %w[
+    arrow_alignment
+    arrow_on_right_operand_line
+    documentation
+    legacy_facts
+    variables_not_enclosed
   ]
-  config.ignore_paths = ["tests/**/*.pp", "vendor/**/*.pp","examples/**/*.pp", "spec/**/*.pp", "pkg/**/*.pp"]
+  config.ignore_paths = ['tests/**/*.pp', 'vendor/**/*.pp', 'examples/**/*.pp', 'spec/**/*.pp', 'pkg/**/*.pp']
 end
 
 YAML_LINT_FILES = [
@@ -145,7 +152,7 @@ YAML_LINT_FILES = [
   '.github/workflows/ci.yml',
   '.fixtures.yml',
   'infra/azure-one-node/cloud-init.yaml',
-  'infra/azure-multi-node/cloud-init.yaml',
+  'infra/azure-multi-node/cloud-init.yaml'
 ].freeze
 
 AZURE_ONE_NODE_TEMPLATE_FILE = 'infra/azure-one-node/main.bicep'
@@ -175,13 +182,13 @@ task :yaml_lint do
   sh('yamllint', '-c', 'yamllint.yml', *YAML_LINT_FILES)
 end
 
-Rake::Task[:lint].enhance([:yaml_lint])
+Rake::Task[:lint].enhance(%i[yaml_lint rubocop])
 
 desc 'Run static checks and unit tests'
-task test: [:lint, :spec]
+task test: %i[lint spec]
 
 desc 'Prepare fixtures and run unit tests'
-task unit: [:spec_prep, :spec]
+task unit: %i[spec_prep spec]
 
 def ensure_azure_laptop_ip!
   laptop_ip = ENV['LAPTOP_IP'].to_s.strip
@@ -268,7 +275,8 @@ end
 
 def build_azure_bicep_parameters!(parameters_file:, compiled_parameters_file:, env: {})
   FileUtils.mkdir_p(File.dirname(compiled_parameters_file))
-  stdout, stderr, status = Open3.capture3(env, 'az', 'bicep', 'build-params', '--file', parameters_file, '--outfile', compiled_parameters_file)
+  stdout, stderr, status = Open3.capture3(env, 'az', 'bicep', 'build-params', '--file', parameters_file, '--outfile',
+                                          compiled_parameters_file)
   puts stdout unless stdout.empty?
   abort stderr unless status.success?
 end
@@ -283,7 +291,7 @@ def azure_metadata_env
       'AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY',
       AZURE_DUMMY_ADMIN_SSH_PUBLIC_KEY
     ),
-    'LAPTOP_IP' => ENV.fetch('LAPTOP_IP', AZURE_DUMMY_LAPTOP_IP),
+    'LAPTOP_IP' => ENV.fetch('LAPTOP_IP', AZURE_DUMMY_LAPTOP_IP)
   }
 end
 
@@ -293,9 +301,9 @@ def compiled_bicepparam_values(parameters_file, compiled_parameters_file)
     compiled_parameters_file: compiled_parameters_file,
     env: azure_metadata_env
   )
-  JSON.parse(File.read(compiled_parameters_file)).
-    fetch('parameters').
-    transform_values { |parameter| parameter.fetch('value') }
+  JSON.parse(File.read(compiled_parameters_file))
+      .fetch('parameters')
+      .transform_values { |parameter| parameter.fetch('value') }
 end
 
 def one_node_bicepparam_values
@@ -400,13 +408,13 @@ end
 
 def print_azure_one_node_outputs(outputs)
   rows = [
-    ['AdminUsername', 'PublicIpAddress', 'SshCommand', 'VmName'],
+    %w[AdminUsername PublicIpAddress SshCommand VmName],
     [
       outputs.fetch('adminUsername'),
       outputs.fetch('publicIpAddress'),
       outputs.fetch('sshCommand'),
-      outputs.fetch('vmName'),
-    ],
+      outputs.fetch('vmName')
+    ]
   ]
   widths = rows.transpose.map { |column| column.map(&:length).max }
 
@@ -439,16 +447,16 @@ end
 
 def print_azure_multi_node_outputs(nodes)
   rows = [
-    ['Role', 'VmName', 'PrivateIpAddress', 'PublicIpAddress', 'SshCommand'],
+    %w[Role VmName PrivateIpAddress PublicIpAddress SshCommand],
     *nodes.map do |node|
       [
         node.fetch('role'),
         node.fetch('vmName'),
         node.fetch('privateIpAddress'),
         node.fetch('publicIpAddress'),
-        node.fetch('sshCommand'),
+        node.fetch('sshCommand')
       ]
-    end,
+    end
   ]
 
   widths = rows.transpose.map { |column| column.map(&:length).max }
@@ -558,7 +566,7 @@ def update_azure_one_node_fact_source!(outputs, source_cidr)
     'mkdir -p /etc/facter/facts.d',
     'espv="$(readlink -f /dev/disk/azure/scsi1/lun0)"',
     "printf '%s\\n' \"espv: ${espv}\" 'elk_lab_source_cidr: #{source_cidr}' > #{azure_one_node_source_fact_file}",
-    "chmod 0644 #{azure_one_node_source_fact_file}",
+    "chmod 0644 #{azure_one_node_source_fact_file}"
   ].join(' && ')
 
   azure_vm_run_command!(outputs.fetch('vmName'), script)
@@ -578,9 +586,9 @@ def update_azure_multi_node_fact_source!(nodes, source_cidr)
         'if [ -e /dev/disk/azure/scsi1/lun0 ]; then',
         'espv="$(readlink -f /dev/disk/azure/scsi1/lun0)";',
         "printf '%s\\n' \"espv: ${espv}\" >> #{fact_file};",
-        'fi',
+        'fi'
       ].join(' '),
-      "chmod 0644 #{fact_file}",
+      "chmod 0644 #{fact_file}"
     ].join(' && ')
 
     azure_vm_run_command!(node.fetch('vmName'), script)
@@ -621,25 +629,25 @@ def write_azure_one_node_litmus_inventory(outputs)
               'ssh' => {
                 'user' => outputs.fetch('adminUsername'),
                 'run-as' => 'root',
-                'host-key-check' => false,
-              },
+                'host-key-check' => false
+              }
             },
             'facts' => {
               'platform' => 'almalinux-9-x86_64',
-              'provisioner' => 'azure',
+              'provisioner' => 'azure'
             },
             'vars' => {
               'role' => 'elk_stack',
-              'vm_name' => outputs.fetch('vmName'),
-            },
-          },
-        ],
+              'vm_name' => outputs.fetch('vmName')
+            }
+          }
+        ]
       },
       {
         'name' => 'winrm_nodes',
-        'targets' => [],
-      },
-    ],
+        'targets' => []
+      }
+    ]
   }
 
   FileUtils.mkdir_p(File.dirname(AZURE_ONE_NODE_LITMUS_INVENTORY_FILE))
@@ -660,26 +668,26 @@ def write_azure_multi_node_litmus_inventory(nodes)
               'ssh' => {
                 'user' => node.fetch('adminUsername'),
                 'run-as' => 'root',
-                'host-key-check' => false,
-              },
+                'host-key-check' => false
+              }
             },
             'facts' => {
               'platform' => 'almalinux-9-x86_64',
-              'provisioner' => 'azure',
+              'provisioner' => 'azure'
             },
             'vars' => {
               'role' => node.fetch('role'),
               'vm_name' => node.fetch('vmName'),
-              'private_ip_address' => node.fetch('privateIpAddress'),
-            },
+              'private_ip_address' => node.fetch('privateIpAddress')
+            }
           }
-        end,
+        end
       },
       {
         'name' => 'winrm_nodes',
-        'targets' => [],
-      },
-    ],
+        'targets' => []
+      }
+    ]
   }
 
   FileUtils.mkdir_p(File.dirname(AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE))
@@ -729,7 +737,7 @@ namespace :azure do
     end
 
     desc 'Run one-node Azure static checks without deploying resources'
-    task static: [:lint, :cloud_init_schema, :assert_compiled]
+    task static: %i[lint cloud_init_schema assert_compiled]
 
     desc 'Validate the one-node Azure deployment against the target resource group'
     task validate: ['azure:resource_group', :build] do
@@ -775,7 +783,7 @@ namespace :azure do
     end
 
     desc 'Check Litmus SSH connectivity to the deployed one-node Azure VM'
-    task check_connectivity: [:source_ip, :inventory] do
+    task check_connectivity: %i[source_ip inventory] do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       Rake::Task['litmus:check_connectivity'].invoke(target_host)
     end
@@ -787,7 +795,7 @@ namespace :azure do
     end
 
     desc 'Run acceptance tests against the deployed one-node Azure VM'
-    task acceptance: [:source_ip, :install_agent] do
+    task acceptance: %i[source_ip install_agent] do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       env = { 'TARGET_HOST' => target_host }
       sh(env, 'bundle', 'exec', 'rspec', AZURE_ONE_NODE_ACCEPTANCE_SPEC)
@@ -795,12 +803,10 @@ namespace :azure do
 
     desc 'Create, test, and destroy the one-node Azure VM'
     task :acceptance_ephemeral do
-      begin
-        Rake::Task['azure:one_node:deploy'].invoke
-        Rake::Task['azure:one_node:acceptance'].invoke
-      ensure
-        destroy_azure_resource_group!(wait: true)
-      end
+      Rake::Task['azure:one_node:deploy'].invoke
+      Rake::Task['azure:one_node:acceptance'].invoke
+    ensure
+      destroy_azure_resource_group!(wait: true)
     end
   end
 
@@ -835,7 +841,7 @@ namespace :azure do
     end
 
     desc 'Run multi-node Azure static checks without deploying resources'
-    task static: [:lint, :cloud_init_schema, :assert_compiled]
+    task static: %i[lint cloud_init_schema assert_compiled]
 
     desc 'Validate the multi-node Azure deployment against the target resource group'
     task validate: ['azure:resource_group', :build] do
@@ -880,7 +886,7 @@ namespace :azure do
     end
 
     desc 'Check Litmus SSH connectivity to the deployed multi-node Azure VMs'
-    task check_connectivity: [:source_ip, :inventory] do
+    task check_connectivity: %i[source_ip inventory] do
       sh('bundle', 'exec', 'rake', 'litmus:check_connectivity')
     end
 
@@ -890,11 +896,11 @@ namespace :azure do
     end
 
     desc 'Run acceptance tests against the deployed multi-node Azure VMs'
-    task acceptance: [:source_ip, :install_agent] do
+    task acceptance: %i[source_ip install_agent] do
       azure_multi_node_outputs.each do |node|
         env = {
           'ELK_LAB_ROLE' => node.fetch('role'),
-          'TARGET_HOST' => node.fetch('publicIpAddress'),
+          'TARGET_HOST' => node.fetch('publicIpAddress')
         }
         puts "Running multi-node acceptance for #{node.fetch('role')} at #{node.fetch('publicIpAddress')}."
         sh(env, 'bundle', 'exec', 'rspec', AZURE_MULTI_NODE_ACCEPTANCE_SPEC)
@@ -903,12 +909,10 @@ namespace :azure do
 
     desc 'Create, test, and destroy the multi-node Azure VMs'
     task :acceptance_ephemeral do
-      begin
-        Rake::Task['azure:multi_node:deploy'].invoke
-        Rake::Task['azure:multi_node:acceptance'].invoke
-      ensure
-        destroy_azure_resource_group!(wait: true)
-      end
+      Rake::Task['azure:multi_node:deploy'].invoke
+      Rake::Task['azure:multi_node:acceptance'].invoke
+    ensure
+      destroy_azure_resource_group!(wait: true)
     end
   end
 end

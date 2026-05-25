@@ -52,7 +52,7 @@ RSpec.describe 'compiled multi-node Azure template', :azure_static do
   end
 
   it 'defines the expected node roles' do
-    expect(parameter_value('nodes').map { |node| node.fetch('role') }).to contain_exactly(*roles)
+    expect(parameter_value('nodes').map { |node| node.fetch('role') }).to match_array(roles)
   end
 
   it 'creates one VM, NIC, and public IP per node' do
@@ -120,7 +120,7 @@ RSpec.describe 'compiled multi-node Azure template', :azure_static do
     ssh_rule = security_rule(nsg, 'AllowSsh')
     lab_rule = security_rule(nsg, 'AllowLabPortsFromClient')
 
-    expect(single_host_ipv4_cidr?(ssh_source)).to eq(true)
+    expect(single_host_ipv4_cidr?(ssh_source)).to be(true)
     expect(ssh_source).not_to eq('0.0.0.0/0')
     expect(ssh_rule.fetch('properties').fetch('sourceAddressPrefix')).to eq("[parameters('sshSourceAddressPrefix')]")
     expect(lab_rule.fetch('properties').fetch('sourceAddressPrefix')).to eq("[parameters('sshSourceAddressPrefix')]")

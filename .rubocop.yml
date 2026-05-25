@@ -1,0 +1,80 @@
+plugins:
+  - rubocop-rspec
+
+AllCops:
+  CacheRootDirectory: .rubocop_cache
+  NewCops: enable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.0
+  Exclude:
+    - '.bundle/**/*'
+    - '.puppet/**/*'
+    - '.yardoc/**/*'
+    - 'catalogs/**/*'
+    - 'log/**/*'
+    - 'pkg/**/*'
+    - 'spec/fixtures/Puppetfile'
+    - 'spec/fixtures/modules/**/*'
+    - 'vendor/**/*'
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/BlockLength:
+  Exclude:
+    - 'Rakefile'
+    - 'spec/**/*.rb'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'Rakefile'
+    - 'spec/**/*.rb'
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'Rakefile'
+    - 'spec/**/*.rb'
+
+Metrics/MethodLength:
+  Max: 30
+  Exclude:
+    - 'Rakefile'
+    - 'spec/spec_helper_acceptance_local.rb'
+
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/ContextWording:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Max: 20
+  Exclude:
+    - 'spec/azure/**/*_spec.rb'
+
+RSpec/ImplicitSubject:
+  Enabled: false
+
+RSpec/LeakyLocalVariable:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
+RSpec/NoExpectationExample:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/MutableConstant:
+  Enabled: false

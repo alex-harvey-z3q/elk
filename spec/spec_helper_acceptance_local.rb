@@ -52,7 +52,7 @@ class AcceptanceSetup
         Shellwords.escape(modules),
         '-czf',
         Shellwords.escape(archive),
-        '.',
+        '.'
       ].join(' ')
       system(tar_command) || raise('module archive creation failed')
 

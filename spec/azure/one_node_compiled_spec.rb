@@ -86,7 +86,7 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
     ssh_rule = security_rule(nsg, 'AllowSsh')
     lab_rule = security_rule(nsg, 'AllowLabPorts')
 
-    expect(single_host_ipv4_cidr?(ssh_source)).to eq(true)
+    expect(single_host_ipv4_cidr?(ssh_source)).to be(true)
     expect(ssh_source).not_to eq('0.0.0.0/0')
     expect(ssh_rule.fetch('properties').fetch('sourceAddressPrefix')).to eq("[parameters('sshSourceAddressPrefix')]")
     expect(lab_rule.fetch('properties').fetch('sourceAddressPrefix')).to eq("[parameters('sshSourceAddressPrefix')]")
