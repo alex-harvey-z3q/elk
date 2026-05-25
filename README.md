@@ -228,9 +228,75 @@ bundle exec rake azure:one_node:update_source_ip
 
 ### Multi-Node Topology
 
-Not implemented yet. The intended home is `infra/azure-multi-node`, with its
-own Bicep template, parameter file, README notes, and Rake tasks under
-`azure:multi_node:*`.
+The `infra/azure-multi-node` Bicep template provisions four AlmaLinux 9 VMs
+for a distributed ELK lab:
+
+```text
+                         Azure subscription
+                                |
+                                v
+                    +-----------------------+
+                    | Resource group        |
+                    | rg-elk-lab            |
+                    +-----------+-----------+
+                                |
+                                v
+                    +-----------------------+
+                    | Virtual network       |
+                    | 10.43.0.0/16          |
+                    +-----------+-----------+
+                                |
+                                v
+                    +-----------------------+
+                    | Subnet                |
+                    | 10.43.1.0/24          |
+                    +-----------+-----------+
+                                |
+                                v
+                    +-----------------------+
+                    | Network security      |
+                    | group                 |
+                    | SSH from LAPTOP_IP    |
+                    | ELK ports internal    |
+                    +-----------+-----------+
+                                |
+          +---------------------+---------------------+
+          |                     |                     |
+          v                     v                     v
+ +----------------+    +----------------+    +----------------+
+ | Elasticsearch  |    | Logstash       |    | Kibana         |
+ | 10.43.1.10     |<---| 10.43.1.11     |    | 10.43.1.12     |
+ | data disk LUN0 |    | Beats :5044    |    | HTTP :5601     |
+ +----------------+    +----------------+    +----------+-----+
+                                                        ^
+                                                        |
+                                                +-------+--------+
+                                                | Edge / Nginx   |
+                                                | 10.43.1.13     |
+                                                | HTTP :80       |
+                                                +----------------+
+```
+
+Each VM gets its own public IP for SSH during lab work, with SSH and exposed lab
+ports restricted to `LAPTOP_IP`. The NSG also allows the ELK ports within the
+lab subnet so the nodes can communicate over their private addresses.
+
+The multi-node infrastructure is ready for deployment and static validation,
+but the Puppet roles and Litmus acceptance tests are still one-node oriented.
+Do not expect `azure:one_node:acceptance` to validate this topology yet.
+
+Export the multi-node SSH key input, then build, validate, deploy, and inspect
+the topology:
+
+```bash
+export LAPTOP_IP=<your-public-ipv4>
+export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+bundle exec rake azure:resource_group
+bundle exec rake azure:multi_node:build
+bundle exec rake azure:multi_node:validate
+bundle exec rake azure:multi_node:deploy
+bundle exec rake azure:multi_node:outputs
+```
 
 ## Testing
 
@@ -262,6 +328,14 @@ The Azure static check is equivalent to running these individual checks:
 bundle exec rake azure:one_node:lint
 bundle exec rake azure:one_node:cloud_init_schema
 bundle exec rake azure:one_node:assert_compiled
+```
+
+Run the multi-node Azure static checks:
+
+```bash
+export LAPTOP_IP=<your-public-ipv4>
+export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+bundle exec rake azure:multi_node:static
 ```
 
 Run acceptance tests on fresh Azure infrastructure and clean up afterwards:
@@ -296,14 +370,6 @@ bundle exec rake azure:one_node:source_ip
 bundle exec rake azure:one_node:check_connectivity
 bundle exec rake azure:one_node:install_agent
 TARGET_HOST=<public-ip> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
-```
-
-If your public IP changes while reusing an existing VM, update the Azure NSG and
-VM firewall fact before running acceptance tests again:
-
-```bash
-export LAPTOP_IP="$(curl -s https://ifconfig.me)"
-bundle exec rake azure:one_node:update_source_ip
 ```
 
 ## Security Note

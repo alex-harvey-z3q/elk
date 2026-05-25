@@ -28,6 +28,8 @@ YAML_LINT_FILES = [
   'spec/fixtures/hieradata/common.yaml',
   '.github/workflows/ci.yml',
   '.fixtures.yml',
+  'infra/azure-one-node/cloud-init.yaml',
+  'infra/azure-multi-node/cloud-init.yaml',
 ].freeze
 
 AZURE_RESOURCE_GROUP = 'rg-elk-lab'
@@ -47,6 +49,16 @@ AZURE_ONE_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
 AZURE_ONE_NODE_PUPPET_COLLECTION = 'puppet8'
 AZURE_ONE_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_stack_spec.rb'
 AZURE_ONE_NODE_PUBLIC_IP_SERVICE = 'https://ifconfig.me'
+AZURE_MULTI_NODE_TEMPLATE_FILE = 'infra/azure-multi-node/main.bicep'
+AZURE_MULTI_NODE_PARAMETERS_FILE = 'infra/azure-multi-node/main.bicepparam'
+AZURE_MULTI_NODE_CLOUD_INIT_FILE = 'infra/azure-multi-node/cloud-init.yaml'
+AZURE_MULTI_NODE_DEPLOYMENT_NAME = 'elk-multi-node'
+AZURE_MULTI_NODE_NAME_PREFIX = 'elk-lab-multi'
+AZURE_MULTI_NODE_NSG_NAME = "#{AZURE_MULTI_NODE_NAME_PREFIX}-nsg"
+AZURE_MULTI_NODE_ROLES = %w[elasticsearch logstash kibana edge].freeze
+AZURE_MULTI_NODE_BUILD_DIR = File.join(Dir.tmpdir, 'elk-azure-multi-node-bicep')
+AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE = File.join(AZURE_MULTI_NODE_BUILD_DIR, 'main.json')
+AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_MULTI_NODE_BUILD_DIR, 'main.parameters.json')
 
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
@@ -61,7 +73,7 @@ task test: [:lint, :spec]
 desc 'Prepare fixtures and run unit tests'
 task unit: [:spec_prep, :spec]
 
-def ensure_azure_one_node_laptop_ip!
+def ensure_azure_laptop_ip!
   laptop_ip = ENV['LAPTOP_IP'].to_s.strip
   abort <<~MESSAGE if laptop_ip.empty?
     Set LAPTOP_IP before running this task.
@@ -113,6 +125,28 @@ def ensure_azure_one_node_admin_ssh_public_key!
 
     Example:
       export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+  MESSAGE
+end
+
+def ensure_azure_multi_node_admin_ssh_public_key!
+  public_key = ENV['AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY'].to_s.strip
+  abort <<~MESSAGE if public_key.empty?
+    Set AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY before running this task.
+
+    Example:
+      export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+  MESSAGE
+
+  return if public_key.match?(/\Assh-(rsa|ed25519) \S+/)
+
+  abort <<~MESSAGE
+    AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY must contain an SSH public key.
+
+    Current value:
+      AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY=#{public_key}
+
+    Example:
+      export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
   MESSAGE
 end
 
@@ -218,8 +252,80 @@ def print_azure_one_node_outputs(outputs)
   puts rows[1].each_with_index.map { |value, index| value.ljust(widths[index]) }.join('  ')
 end
 
+def azure_multi_node_outputs
+  nodes = AZURE_MULTI_NODE_ROLES.map do |role|
+    vm_name = "#{AZURE_MULTI_NODE_NAME_PREFIX}-#{role}-vm"
+    public_ip_name = "#{AZURE_MULTI_NODE_NAME_PREFIX}-#{role}-pip"
+    admin_username = capture_command(
+      'az', 'vm', 'show',
+      '--resource-group', AZURE_RESOURCE_GROUP,
+      '--name', vm_name,
+      '--query', 'osProfile.adminUsername',
+      '--output', 'tsv'
+    )
+    public_ip_address = capture_command(
+      'az', 'network', 'public-ip', 'show',
+      '--resource-group', AZURE_RESOURCE_GROUP,
+      '--name', public_ip_name,
+      '--query', 'ipAddress',
+      '--output', 'tsv'
+    )
+    private_ip_address = capture_command(
+      'az', 'vm', 'list-ip-addresses',
+      '--resource-group', AZURE_RESOURCE_GROUP,
+      '--name', vm_name,
+      '--query', '[0].virtualMachine.network.privateIpAddresses[0]',
+      '--output', 'tsv'
+    )
+
+    {
+      'role' => role,
+      'adminUsername' => admin_username,
+      'publicIpAddress' => public_ip_address,
+      'privateIpAddress' => private_ip_address,
+      'sshCommand' => "ssh #{admin_username}@#{public_ip_address}",
+      'vmName' => vm_name,
+    }
+  end
+
+  nodes.each do |node|
+    %w[role adminUsername publicIpAddress privateIpAddress sshCommand vmName].each do |key|
+      abort "Azure multi-node output #{node['role']} #{key} is missing. Has the multi-node deployment completed successfully?" if node[key].to_s.empty?
+    end
+  end
+
+  nodes
+end
+
+def print_azure_multi_node_outputs(nodes)
+  rows = [
+    ['Role', 'VmName', 'PrivateIpAddress', 'PublicIpAddress', 'SshCommand'],
+    *nodes.map do |node|
+      [
+        node.fetch('role'),
+        node.fetch('vmName'),
+        node.fetch('privateIpAddress'),
+        node.fetch('publicIpAddress'),
+        node.fetch('sshCommand'),
+      ]
+    end,
+  ]
+  widths = rows.transpose.map { |column| column.map(&:length).max }
+
+  rows.each_with_index do |row, row_index|
+    puts row.each_with_index.map { |value, index| value.ljust(widths[index]) }.join('  ')
+    puts widths.map { |width| '-' * width }.join('  ') if row_index.zero?
+  end
+end
+
 def azure_one_node_source_cidr
-  ensure_azure_one_node_laptop_ip!
+  ensure_azure_laptop_ip!
+
+  "#{ENV['LAPTOP_IP'].strip}/32"
+end
+
+def azure_multi_node_source_cidr
+  ensure_azure_laptop_ip!
 
   "#{ENV['LAPTOP_IP'].strip}/32"
 end
@@ -229,6 +335,17 @@ def azure_one_node_ssh_source_cidr
     'az', 'network', 'nsg', 'rule', 'show',
     '--resource-group', AZURE_RESOURCE_GROUP,
     '--nsg-name', AZURE_ONE_NODE_NSG_NAME,
+    '--name', 'AllowSsh',
+    '--query', 'sourceAddressPrefix',
+    '--output', 'tsv'
+  )
+end
+
+def azure_multi_node_ssh_source_cidr
+  capture_command(
+    'az', 'network', 'nsg', 'rule', 'show',
+    '--resource-group', AZURE_RESOURCE_GROUP,
+    '--nsg-name', AZURE_MULTI_NODE_NSG_NAME,
     '--name', 'AllowSsh',
     '--query', 'sourceAddressPrefix',
     '--output', 'tsv'
@@ -261,6 +378,28 @@ def assert_azure_one_node_source_ip!
   MESSAGE
 end
 
+def assert_azure_multi_node_source_ip!
+  allowed_source = azure_multi_node_ssh_source_cidr
+  actual_source = "#{current_public_ip}/32"
+  return if allowed_source == actual_source
+
+  abort <<~MESSAGE
+    Current public IP does not match the Azure multi-node SSH allow-list.
+
+    Azure NSG AllowSsh source:
+      #{allowed_source}
+
+    Current public IP:
+      #{actual_source}
+
+    Update the multi-node source IP with the current LAPTOP_IP before using
+    the deployed VMs:
+
+      export LAPTOP_IP=#{actual_source.delete_suffix('/32')}
+      bundle exec rake azure:multi_node:update_source_ip
+  MESSAGE
+end
+
 def update_azure_one_node_nsg_source!(source_cidr)
   %w[AllowSsh AllowLabPorts].each do |rule_name|
     azure_cli(
@@ -290,6 +429,39 @@ def update_azure_one_node_fact_source!(outputs, source_cidr)
     '--scripts', script,
     '--output', 'none'
   )
+end
+
+def update_azure_multi_node_nsg_source!(source_cidr)
+  %w[AllowSsh AllowLabPortsFromClient].each do |rule_name|
+    azure_cli(
+      'az', 'network', 'nsg', 'rule', 'update',
+      '--resource-group', AZURE_RESOURCE_GROUP,
+      '--nsg-name', AZURE_MULTI_NODE_NSG_NAME,
+      '--name', rule_name,
+      '--source-address-prefixes', source_cidr,
+      '--output', 'none'
+    )
+  end
+end
+
+def update_azure_multi_node_fact_source!(nodes, source_cidr)
+  nodes.each do |node|
+    script = [
+      'mkdir -p /etc/facter/facts.d',
+      "printf '%s\\n' 'elk_lab_role: #{node.fetch('role')}' 'elk_lab_source_cidr: #{source_cidr}' > /etc/facter/facts.d/elk_lab.yaml",
+      'if [ -e /dev/disk/azure/scsi1/lun0 ]; then espv="$(readlink -f /dev/disk/azure/scsi1/lun0)"; printf \'%s\\n\' "espv: ${espv}" >> /etc/facter/facts.d/elk_lab.yaml; fi',
+      'chmod 0644 /etc/facter/facts.d/elk_lab.yaml',
+    ].join(' && ')
+
+    azure_cli(
+      'az', 'vm', 'run-command', 'invoke',
+      '--resource-group', AZURE_RESOURCE_GROUP,
+      '--name', node.fetch('vmName'),
+      '--command-id', 'RunShellScript',
+      '--scripts', script,
+      '--output', 'none'
+    )
+  end
 end
 
 def write_azure_one_node_litmus_inventory(outputs)
@@ -367,7 +539,7 @@ namespace :azure do
 
     desc 'Compile the one-node Azure Bicep template and parameter file'
     task :build do
-      ensure_azure_one_node_laptop_ip!
+      ensure_azure_laptop_ip!
       ensure_azure_one_node_admin_ssh_public_key!
       FileUtils.mkdir_p(AZURE_ONE_NODE_BUILD_DIR)
       azure_cli(
@@ -468,6 +640,94 @@ namespace :azure do
       ensure
         destroy_azure_resource_group!(wait: true)
       end
+    end
+  end
+
+  namespace :multi_node do
+    desc 'Lint the multi-node Azure Bicep template'
+    task :lint do
+      azure_cli(
+        'az', 'bicep', 'lint',
+        '--file', AZURE_MULTI_NODE_TEMPLATE_FILE
+      )
+    end
+
+    desc 'Validate the multi-node cloud-init configuration schema'
+    task :cloud_init_schema do
+      shell_command(
+        'sudo',
+        'cloud-init', 'schema',
+        '-c', AZURE_MULTI_NODE_CLOUD_INIT_FILE,
+        '--annotate'
+      )
+    end
+
+    desc 'Compile the multi-node Azure Bicep template and parameter file'
+    task :build do
+      ensure_azure_laptop_ip!
+      ensure_azure_multi_node_admin_ssh_public_key!
+      FileUtils.mkdir_p(AZURE_MULTI_NODE_BUILD_DIR)
+      azure_cli(
+        'az', 'bicep', 'build',
+        '--file', AZURE_MULTI_NODE_TEMPLATE_FILE,
+        '--outfile', AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE
+      )
+      azure_cli(
+        'az', 'bicep', 'build-params',
+        '--file', AZURE_MULTI_NODE_PARAMETERS_FILE,
+        '--outfile', AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
+      )
+    end
+
+    desc 'Assert important properties in the compiled multi-node Azure template with RSpec'
+    task assert_compiled: [:build] do
+      ENV['RUN_AZURE_STATIC_SPECS'] = 'true'
+      sh('bundle', 'exec', 'rspec', 'spec/azure/multi_node_compiled_spec.rb')
+    end
+
+    desc 'Run multi-node Azure static checks without deploying resources'
+    task static: [:lint, :cloud_init_schema, :assert_compiled]
+
+    desc 'Validate the multi-node Azure deployment against the target resource group'
+    task validate: [:build] do
+      azure_cli(
+        'az', 'deployment', 'group', 'validate',
+        '--resource-group', AZURE_RESOURCE_GROUP,
+        '--template-file', AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
+        '--parameters', "@#{AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE}"
+      )
+    end
+
+    desc 'Deploy the multi-node Azure lab VMs'
+    task deploy: [:build] do
+      azure_cli(
+        'az', 'deployment', 'group', 'create',
+        '--name', AZURE_MULTI_NODE_DEPLOYMENT_NAME,
+        '--resource-group', AZURE_RESOURCE_GROUP,
+        '--template-file', AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
+        '--parameters', "@#{AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE}"
+      )
+    end
+
+    desc 'Show multi-node Azure deployment outputs'
+    task :outputs do
+      print_azure_multi_node_outputs(azure_multi_node_outputs)
+    end
+
+    desc 'Update NSG and VM facts for the current LAPTOP_IP'
+    task :update_source_ip do
+      source_cidr = azure_multi_node_source_cidr
+      nodes = azure_multi_node_outputs
+
+      update_azure_multi_node_nsg_source!(source_cidr)
+      update_azure_multi_node_fact_source!(nodes, source_cidr)
+      puts "Updated #{AZURE_MULTI_NODE_NSG_NAME} and /etc/facter/facts.d/elk_lab.yaml to #{source_cidr}."
+    end
+
+    desc 'Check current public IP against the Azure multi-node SSH allow-list'
+    task :source_ip do
+      assert_azure_multi_node_source_ip!
+      puts "Current public IP matches #{AZURE_MULTI_NODE_NSG_NAME} AllowSsh."
     end
   end
 end

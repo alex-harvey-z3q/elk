@@ -1,0 +1,36 @@
+#cloud-config
+---
+package_update: true
+packages:
+  - curl
+  - iptables-services
+  - lvm2
+  - tar
+  - unzip
+
+bootcmd:
+  - [mkdir, -p, /etc/facter/facts.d]
+
+write_files:
+  - path: /etc/sysctl.d/99-elastic-lab.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      vm.max_map_count = 262144
+runcmd:
+  - [udevadm, settle, --timeout=60]
+  - |
+    set -eu
+    mkdir -p /etc/facter/facts.d
+    {
+      echo "elk_lab_role: __ELK_LAB_ROLE__"
+      echo "elk_lab_source_cidr: __ELK_LAB_SOURCE_CIDR__"
+      if [ -e /dev/disk/azure/scsi1/lun0 ]; then
+        espv="$(readlink -f /dev/disk/azure/scsi1/lun0)"
+        echo "espv: ${espv}"
+      fi
+    } > /etc/facter/facts.d/elk_lab.yaml
+    chmod 0644 /etc/facter/facts.d/elk_lab.yaml
+  - [sysctl, --system]
+  - [systemctl, enable, --now, iptables.service]
+  - [systemctl, enable, --now, ip6tables.service]
