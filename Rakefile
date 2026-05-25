@@ -741,7 +741,10 @@ namespace :azure do
     desc 'Run acceptance tests against the deployed multi-node Azure VMs'
     task acceptance: [:install_agent] do
       azure_multi_node_outputs.each do |node|
-        env = { 'TARGET_HOST' => node.fetch('publicIpAddress') }
+        env = {
+          'ELK_LAB_ROLE' => node.fetch('role'),
+          'TARGET_HOST' => node.fetch('publicIpAddress'),
+        }
         puts "Running multi-node acceptance for #{node.fetch('role')} at #{node.fetch('publicIpAddress')}."
         sh(env, 'bundle', 'exec', 'rspec', AZURE_MULTI_NODE_ACCEPTANCE_SPEC)
       end
