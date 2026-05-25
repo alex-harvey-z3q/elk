@@ -3,6 +3,12 @@ targetScope = 'resourceGroup'
 @description('Azure region for all resources.')
 param location string
 
+@description('Resource group used by the lab orchestration tasks.')
+param resourceGroupName string
+
+@description('Deployment name used by the lab orchestration tasks.')
+param deploymentName string
+
 @description('Short name used as the prefix for Azure resource names.')
 param namePrefix string
 
@@ -50,6 +56,9 @@ param imageVersion string
 
 @description('Cloud-init configuration template applied at first boot.')
 param customDataTemplate string
+
+@description('Path to the external fact file refreshed by the lab orchestration tasks.')
+param sourceFactFile string
 
 var safePrefix = take(toLower(replace(namePrefix, '_', '-')), 40)
 var vnetName = '${safePrefix}-vnet'
@@ -215,6 +224,9 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
 }
 
 output adminUsername string = adminUsername
+output deploymentName string = deploymentName
 output publicIpAddress string = publicIp.properties.ipAddress
+output resourceGroupName string = resourceGroupName
+output sourceFactFile string = sourceFactFile
 output sshCommand string = 'ssh ${adminUsername}@${publicIp.properties.ipAddress}'
 output vmName string = vm.name
