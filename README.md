@@ -108,13 +108,6 @@ Each Azure deployment topology lives in its own directory under `infra/`.
 The current topologies are `infra/azure-one-node` and
 `infra/azure-multi-node`.
 
-For manual deployment and iteration, create the shared resource group before
-deploying a topology:
-
-```bash
-bundle exec rake azure:resource_group
-```
-
 Destroy the lab resource group when finished:
 
 ```bash
@@ -207,11 +200,9 @@ az login
 az account set --subscription <subscription-id-or-name>
 ```
 
-Then to deploy:
+Then to validate and deploy:
 
 ```bash
-bundle exec rake azure:one_node:build
-bundle exec rake azure:one_node:validate
 bundle exec rake azure:one_node:deploy
 bundle exec rake azure:one_node:outputs
 ```
@@ -292,15 +283,12 @@ and Edge/Nginx nodes use role-specific Hiera data under
 
 #### Deployment
 
-Export the multi-node SSH key input, then build, validate, deploy, and inspect
-the topology:
+Export the multi-node SSH key input, then validate, deploy, and inspect the
+topology:
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
 export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
-bundle exec rake azure:resource_group
-bundle exec rake azure:multi_node:build
-bundle exec rake azure:multi_node:validate
 bundle exec rake azure:multi_node:deploy
 bundle exec rake azure:multi_node:outputs
 ```
@@ -365,6 +353,7 @@ bundle exec rake azure:one_node:acceptance
 ```
 
 That task writes `spec/fixtures/litmus_inventory.yaml` from the Azure resources,
+checks that your current public IP still matches the Azure SSH allow-list,
 checks SSH connectivity, installs the Puppet 8 agent with Litmus, stages the
 control repo fixtures on the VM, applies `role::elk_stack`, and runs
 `spec/acceptance/role_elk_stack_spec.rb`.
@@ -394,7 +383,8 @@ To run the multi-node acceptance tests against an existing deployment:
 bundle exec rake azure:multi_node:acceptance
 ```
 
-That task writes a Litmus inventory with all four Azure VMs, checks SSH
+That task writes a Litmus inventory with all four Azure VMs, checks that your
+current public IP still matches the Azure SSH allow-list, checks SSH
 connectivity, installs the Puppet 8 agent on each VM, stages the control repo
 fixtures, applies `role::elk_multi_node`, and runs
 `spec/acceptance/role_elk_multi_node_spec.rb`. The acceptance spec checks the
@@ -408,7 +398,10 @@ bundle exec rake azure:multi_node:inventory
 bundle exec rake azure:multi_node:source_ip
 bundle exec rake azure:multi_node:check_connectivity
 bundle exec rake azure:multi_node:install_agent
-bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=elasticsearch TARGET_HOST=<elasticsearch-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=logstash TARGET_HOST=<logstash-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=kibana TARGET_HOST=<kibana-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=edge TARGET_HOST=<edge-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
 ```
 
 ## Security Note

@@ -1,3 +1,113 @@
+# Rake tasks hierarchy
+#
+# Local quality
+# =============
+#
+# test
+#  |
+#  +-- lint
+#  |    |
+#  |    +-- yaml_lint
+#  |
+#  +-- spec
+#
+#
+# One-node Azure
+# ==============
+#
+# azure:one_node:static
+#  |
+#  +-- azure:one_node:lint
+#  +-- azure:one_node:cloud_init_schema
+#  +-- azure:one_node:assert_compiled
+#       |
+#       +-- azure:one_node:build
+#            |
+#            +-- checks LAPTOP_IP
+#            +-- checks AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY
+#            +-- az bicep build
+#            +-- az bicep build-params
+#
+# azure:one_node:deploy
+#  |
+#  +-- azure:one_node:validate
+#  |    |
+#  |    +-- azure:resource_group
+#  |    +-- azure:one_node:build
+#  |    +-- az deployment group validate
+#  |
+#  +-- az deployment group create
+#
+# azure:one_node:acceptance
+#  |
+#  +-- azure:one_node:install_agent
+#  |    |
+#  |    +-- azure:one_node:check_connectivity
+#  |         |
+#  |         +-- azure:one_node:source_ip
+#  |         +-- azure:one_node:inventory
+#  |         +-- litmus:check_connectivity
+#  |
+#  +-- litmus:install_agent[puppet8]
+#  +-- rspec spec/acceptance/role_elk_stack_spec.rb
+#
+# azure:one_node:acceptance_ephemeral
+#  |
+#  +-- azure:one_node:deploy
+#  +-- azure:one_node:acceptance
+#  +-- azure:destroy with wait
+#
+#
+# Multi-node Azure
+# ================
+#
+# azure:multi_node:static
+#  |
+#  +-- azure:multi_node:lint
+#  +-- azure:multi_node:cloud_init_schema
+#  +-- azure:multi_node:assert_compiled
+#       |
+#       +-- azure:multi_node:build
+#            |
+#            +-- checks LAPTOP_IP
+#            +-- checks AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY
+#            +-- az bicep build
+#            +-- az bicep build-params
+#
+# azure:multi_node:deploy
+#  |
+#  +-- azure:multi_node:validate
+#  |    |
+#  |    +-- azure:resource_group
+#  |    +-- azure:multi_node:build
+#  |    +-- az deployment group validate
+#  |
+#  +-- az deployment group create
+#
+# azure:multi_node:acceptance
+#  |
+#  +-- azure:multi_node:install_agent
+#  |    |
+#  |    +-- azure:multi_node:check_connectivity
+#  |         |
+#  |         +-- azure:multi_node:source_ip
+#  |         +-- azure:multi_node:inventory
+#  |         +-- litmus:check_connectivity
+#  |
+#  +-- litmus:install_agent[puppet8]
+#  +-- rspec spec/acceptance/role_elk_multi_node_spec.rb
+#  |    |
+#  |    +-- ELK_LAB_ROLE=elasticsearch TARGET_HOST=<es-ip>
+#  |    +-- ELK_LAB_ROLE=logstash      TARGET_HOST=<logstash-ip>
+#  |    +-- ELK_LAB_ROLE=kibana        TARGET_HOST=<kibana-ip>
+#  |    +-- ELK_LAB_ROLE=edge          TARGET_HOST=<edge-ip>
+#
+# azure:multi_node:acceptance_ephemeral
+#  |
+#  +-- azure:multi_node:deploy
+#  +-- azure:multi_node:acceptance
+#  +-- azure:destroy with wait
+
 require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet_litmus/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
@@ -579,15 +689,15 @@ namespace :azure do
     task static: [:lint, :cloud_init_schema, :assert_compiled]
 
     desc 'Validate the one-node Azure deployment against the target resource group'
-    task validate: [:build] do
+    task validate: ['azure:resource_group', :build] do
       validate_azure_deployment!(
         AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
         AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
-    desc 'Deploy the one-node Azure lab VM'
-    task deploy: [:build] do
+    desc 'Validate and deploy the one-node Azure lab VM'
+    task deploy: [:validate] do
       create_azure_deployment!(
         azure_one_node_deployment_name,
         AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
@@ -622,7 +732,7 @@ namespace :azure do
     end
 
     desc 'Check Litmus SSH connectivity to the deployed one-node Azure VM'
-    task check_connectivity: [:inventory] do
+    task check_connectivity: [:source_ip, :inventory] do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       Rake::Task['litmus:check_connectivity'].invoke(target_host)
     end
@@ -643,8 +753,6 @@ namespace :azure do
     desc 'Create, test, and destroy the one-node Azure VM'
     task :acceptance_ephemeral do
       begin
-        Rake::Task['azure:resource_group'].invoke
-        Rake::Task['azure:one_node:validate'].invoke
         Rake::Task['azure:one_node:deploy'].invoke
         Rake::Task['azure:one_node:acceptance'].invoke
       ensure
@@ -687,15 +795,15 @@ namespace :azure do
     task static: [:lint, :cloud_init_schema, :assert_compiled]
 
     desc 'Validate the multi-node Azure deployment against the target resource group'
-    task validate: [:build] do
+    task validate: ['azure:resource_group', :build] do
       validate_azure_deployment!(
         AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
         AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
-    desc 'Deploy the multi-node Azure lab VMs'
-    task deploy: [:build] do
+    desc 'Validate and deploy the multi-node Azure lab VMs'
+    task deploy: [:validate] do
       create_azure_deployment!(
         azure_multi_node_deployment_name,
         AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
@@ -729,7 +837,7 @@ namespace :azure do
     end
 
     desc 'Check Litmus SSH connectivity to the deployed multi-node Azure VMs'
-    task check_connectivity: [:inventory] do
+    task check_connectivity: [:source_ip, :inventory] do
       sh('bundle', 'exec', 'rake', 'litmus:check_connectivity')
     end
 
@@ -753,8 +861,6 @@ namespace :azure do
     desc 'Create, test, and destroy the multi-node Azure VMs'
     task :acceptance_ephemeral do
       begin
-        Rake::Task['azure:resource_group'].invoke
-        Rake::Task['azure:multi_node:validate'].invoke
         Rake::Task['azure:multi_node:deploy'].invoke
         Rake::Task['azure:multi_node:acceptance'].invoke
       ensure
