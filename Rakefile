@@ -95,48 +95,34 @@ rescue IPAddr::InvalidAddressError
   MESSAGE
 end
 
-def ensure_azure_one_node_admin_ssh_public_key!
-  public_key = ENV['AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY'].to_s.strip
+def ensure_azure_admin_ssh_public_key!(env_name)
+  public_key = ENV[env_name].to_s.strip
   abort <<~MESSAGE if public_key.empty?
-    Set AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY before running this task.
+    Set #{env_name} before running this task.
 
     Example:
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+      export #{env_name}="$(cat ~/.ssh/id_ed25519.pub)"
   MESSAGE
 
   return if public_key.match?(/\Assh-(rsa|ed25519) \S+/)
 
   abort <<~MESSAGE
-    AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY must contain an SSH public key.
+    #{env_name} must contain an SSH public key.
 
     Current value:
-      AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY=#{public_key}
+      #{env_name}=#{public_key}
 
     Example:
-      export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+      export #{env_name}="$(cat ~/.ssh/id_ed25519.pub)"
   MESSAGE
 end
 
+def ensure_azure_one_node_admin_ssh_public_key!
+  ensure_azure_admin_ssh_public_key!('AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY')
+end
+
 def ensure_azure_multi_node_admin_ssh_public_key!
-  public_key = ENV['AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY'].to_s.strip
-  abort <<~MESSAGE if public_key.empty?
-    Set AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY before running this task.
-
-    Example:
-      export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
-  MESSAGE
-
-  return if public_key.match?(/\Assh-(rsa|ed25519) \S+/)
-
-  abort <<~MESSAGE
-    AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY must contain an SSH public key.
-
-    Current value:
-      AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY=#{public_key}
-
-    Example:
-      export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
-  MESSAGE
+  ensure_azure_admin_ssh_public_key!('AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY')
 end
 
 def azure_cli(*args)
@@ -146,14 +132,12 @@ end
 def azure_cli_json(*args)
   stdout, stderr, status = Open3.capture3(*args)
   abort stderr unless status.success?
-
   JSON.parse(stdout)
 end
 
 def capture_command(*args)
   stdout, stderr, status = Open3.capture3(*args)
   abort stderr unless status.success?
-
   stdout.strip
 end
 
@@ -165,7 +149,6 @@ def bicepparam_string(file, name)
   pattern = /^\s*(?:param|var)\s+#{Regexp.escape(name)}\s*=\s*'([^']+)'\s*$/
   match = File.read(file).match(pattern)
   abort "Could not find #{name} in #{file}" unless match
-
   match[1]
 end
 
@@ -202,10 +185,7 @@ def azure_multi_node_source_fact_file
 end
 
 def azure_resource_group_exists?
-  capture_command(
-    'az', 'group', 'exists',
-    '--name', azure_resource_group
-  ) == 'true'
+  capture_command('az', 'group', 'exists', '--name', azure_resource_group) == 'true'
 end
 
 def wait_for_azure_resource_group_deleted!
@@ -234,18 +214,25 @@ def destroy_azure_resource_group!(wait: false)
   wait_for_azure_resource_group_deleted! if wait
 end
 
+def azure_deployment_outputs(deployment_name)
+  azure_cli_json('az', 'deployment', 'group', 'show',
+                 '--name', deployment_name,
+                 '--resource-group', azure_resource_group,
+                 '--query', 'properties.outputs',
+                 '--output', 'json')
+end
+
+def azure_deployment_output_values(deployment_name)
+  azure_deployment_outputs(deployment_name).transform_values { |output| output.fetch('value') }
+end
+
 def azure_one_node_outputs
-  outputs = azure_cli_json(
-    'az', 'deployment', 'group', 'show',
-    '--name', azure_one_node_deployment_name,
-    '--resource-group', azure_resource_group,
-    '--query', 'properties.outputs',
-    '--output', 'json'
-  )
-  outputs = outputs.transform_values { |output| output.fetch('value') }
+  outputs = azure_deployment_output_values(azure_one_node_deployment_name)
 
   %w[adminUsername publicIpAddress sshCommand vmName].each do |key|
-    abort "Azure one-node output #{key} is missing. Has the one-node VM completed successfully?" if outputs[key].to_s.empty?
+    next unless outputs[key].to_s.empty?
+
+    abort "Azure one-node output #{key} is missing. Has the one-node VM completed successfully?"
   end
 
   outputs
@@ -269,21 +256,21 @@ def print_azure_one_node_outputs(outputs)
 end
 
 def azure_multi_node_outputs
-  outputs = azure_cli_json(
-    'az', 'deployment', 'group', 'show',
-    '--name', azure_multi_node_deployment_name,
-    '--resource-group', azure_resource_group,
-    '--query', 'properties.outputs',
-    '--output', 'json'
-  )
+  outputs = azure_deployment_outputs(azure_multi_node_deployment_name)
   admin_username = outputs.fetch('adminUsername').fetch('value')
+
   nodes = outputs.fetch('nodes').fetch('value').map do |node|
     node.merge('adminUsername' => admin_username)
   end
 
   nodes.each do |node|
     %w[role adminUsername publicIpAddress privateIpAddress sshCommand vmName].each do |key|
-      abort "Azure multi-node output #{node['role']} #{key} is missing. Has the multi-node deployment completed successfully?" if node[key].to_s.empty?
+      next unless node[key].to_s.empty?
+
+      abort <<~MESSAGE
+        Azure multi-node output #{node['role']} #{key} is missing.
+        Has the multi-node deployment completed successfully?
+      MESSAGE
     end
   end
 
@@ -303,6 +290,7 @@ def print_azure_multi_node_outputs(nodes)
       ]
     end,
   ]
+
   widths = rows.transpose.map { |column| column.map(&:length).max }
 
   rows.each_with_index do |row, row_index|
@@ -311,38 +299,26 @@ def print_azure_multi_node_outputs(nodes)
   end
 end
 
-def azure_one_node_source_cidr
+def azure_source_cidr
   ensure_azure_laptop_ip!
-
   "#{ENV['LAPTOP_IP'].strip}/32"
 end
 
-def azure_multi_node_source_cidr
-  ensure_azure_laptop_ip!
-
-  "#{ENV['LAPTOP_IP'].strip}/32"
+def azure_ssh_source_cidr(nsg_name)
+  capture_command('az', 'network', 'nsg', 'rule', 'show',
+                  '--resource-group', azure_resource_group,
+                  '--nsg-name', nsg_name,
+                  '--name', 'AllowSsh',
+                  '--query', 'sourceAddressPrefix',
+                  '--output', 'tsv')
 end
 
 def azure_one_node_ssh_source_cidr
-  capture_command(
-    'az', 'network', 'nsg', 'rule', 'show',
-    '--resource-group', azure_resource_group,
-    '--nsg-name', azure_one_node_nsg_name,
-    '--name', 'AllowSsh',
-    '--query', 'sourceAddressPrefix',
-    '--output', 'tsv'
-  )
+  azure_ssh_source_cidr(azure_one_node_nsg_name)
 end
 
 def azure_multi_node_ssh_source_cidr
-  capture_command(
-    'az', 'network', 'nsg', 'rule', 'show',
-    '--resource-group', azure_resource_group,
-    '--nsg-name', azure_multi_node_nsg_name,
-    '--name', 'AllowSsh',
-    '--query', 'sourceAddressPrefix',
-    '--output', 'tsv'
-  )
+  azure_ssh_source_cidr(azure_multi_node_nsg_name)
 end
 
 def current_public_ip
@@ -393,17 +369,28 @@ def assert_azure_multi_node_source_ip!
   MESSAGE
 end
 
-def update_azure_one_node_nsg_source!(source_cidr)
-  %w[AllowSsh AllowLabPorts].each do |rule_name|
-    azure_cli(
-      'az', 'network', 'nsg', 'rule', 'update',
-      '--resource-group', azure_resource_group,
-      '--nsg-name', azure_one_node_nsg_name,
-      '--name', rule_name,
-      '--source-address-prefixes', source_cidr,
-      '--output', 'none'
-    )
+def update_azure_nsg_source!(nsg_name, rule_names, source_cidr)
+  rule_names.each do |rule_name|
+    azure_cli('az', 'network', 'nsg', 'rule', 'update',
+              '--resource-group', azure_resource_group,
+              '--nsg-name', nsg_name,
+              '--name', rule_name,
+              '--source-address-prefixes', source_cidr,
+              '--output', 'none')
   end
+end
+
+def update_azure_one_node_nsg_source!(source_cidr)
+  update_azure_nsg_source!(azure_one_node_nsg_name, %w[AllowSsh AllowLabPorts], source_cidr)
+end
+
+def azure_vm_run_command!(vm_name, script)
+  azure_cli('az', 'vm', 'run-command', 'invoke',
+            '--resource-group', azure_resource_group,
+            '--name', vm_name,
+            '--command-id', 'RunShellScript',
+            '--scripts', script,
+            '--output', 'none')
 end
 
 def update_azure_one_node_fact_source!(outputs, source_cidr)
@@ -414,27 +401,11 @@ def update_azure_one_node_fact_source!(outputs, source_cidr)
     "chmod 0644 #{azure_one_node_source_fact_file}",
   ].join(' && ')
 
-  azure_cli(
-    'az', 'vm', 'run-command', 'invoke',
-    '--resource-group', azure_resource_group,
-    '--name', outputs.fetch('vmName'),
-    '--command-id', 'RunShellScript',
-    '--scripts', script,
-    '--output', 'none'
-  )
+  azure_vm_run_command!(outputs.fetch('vmName'), script)
 end
 
 def update_azure_multi_node_nsg_source!(source_cidr)
-  %w[AllowSsh AllowLabPortsFromClient].each do |rule_name|
-    azure_cli(
-      'az', 'network', 'nsg', 'rule', 'update',
-      '--resource-group', azure_resource_group,
-      '--nsg-name', azure_multi_node_nsg_name,
-      '--name', rule_name,
-      '--source-address-prefixes', source_cidr,
-      '--output', 'none'
-    )
-  end
+  update_azure_nsg_source!(azure_multi_node_nsg_name, %w[AllowSsh AllowLabPortsFromClient], source_cidr)
 end
 
 def update_azure_multi_node_fact_source!(nodes, source_cidr)
@@ -443,19 +414,38 @@ def update_azure_multi_node_fact_source!(nodes, source_cidr)
     script = [
       'mkdir -p /etc/facter/facts.d',
       "printf '%s\\n' 'elk_lab_role: #{node.fetch('role')}' 'elk_lab_source_cidr: #{source_cidr}' > #{fact_file}",
-      "if [ -e /dev/disk/azure/scsi1/lun0 ]; then espv=\"$(readlink -f /dev/disk/azure/scsi1/lun0)\"; printf '%s\\n' \"espv: ${espv}\" >> #{fact_file}; fi",
+      [
+        'if [ -e /dev/disk/azure/scsi1/lun0 ]; then',
+        'espv="$(readlink -f /dev/disk/azure/scsi1/lun0)";',
+        "printf '%s\\n' \"espv: ${espv}\" >> #{fact_file};",
+        'fi',
+      ].join(' '),
       "chmod 0644 #{fact_file}",
     ].join(' && ')
 
-    azure_cli(
-      'az', 'vm', 'run-command', 'invoke',
-      '--resource-group', azure_resource_group,
-      '--name', node.fetch('vmName'),
-      '--command-id', 'RunShellScript',
-      '--scripts', script,
-      '--output', 'none'
-    )
+    azure_vm_run_command!(node.fetch('vmName'), script)
   end
+end
+
+def build_azure_bicep!(build_dir:, template_file:, parameters_file:, compiled_template_file:, compiled_parameters_file:)
+  FileUtils.mkdir_p(build_dir)
+  azure_cli('az', 'bicep', 'build',        '--file', template_file,   '--outfile', compiled_template_file)
+  azure_cli('az', 'bicep', 'build-params', '--file', parameters_file, '--outfile', compiled_parameters_file)
+end
+
+def validate_azure_deployment!(compiled_template_file, compiled_parameters_file)
+  azure_cli('az', 'deployment', 'group', 'validate',
+            '--resource-group', azure_resource_group,
+            '--template-file', compiled_template_file,
+            '--parameters', "@#{compiled_parameters_file}")
+end
+
+def create_azure_deployment!(deployment_name, compiled_template_file, compiled_parameters_file)
+  azure_cli('az', 'deployment', 'group', 'create',
+            '--name', deployment_name,
+            '--resource-group', azure_resource_group,
+            '--template-file', compiled_template_file,
+            '--parameters', "@#{compiled_parameters_file}")
 end
 
 def write_azure_one_node_litmus_inventory(outputs)
@@ -500,11 +490,7 @@ end
 namespace :azure do
   desc 'Create the Azure resource group if it does not already exist'
   task :resource_group do
-    azure_cli(
-      'az', 'group', 'create',
-      '--name', azure_resource_group,
-      '--location', azure_location
-    )
+    azure_cli('az', 'group', 'create', '--name', azure_resource_group, '--location', azure_location)
   end
 
   desc 'Delete the Azure resource group and all lab resources'
@@ -515,36 +501,24 @@ namespace :azure do
   namespace :one_node do
     desc 'Lint the one-node Azure Bicep template'
     task :lint do
-      azure_cli(
-        'az', 'bicep', 'lint',
-        '--file', AZURE_ONE_NODE_TEMPLATE_FILE
-      )
+      azure_cli('az', 'bicep', 'lint', '--file', AZURE_ONE_NODE_TEMPLATE_FILE)
     end
 
     desc 'Validate the one-node cloud-init configuration schema'
     task :cloud_init_schema do
-      shell_command(
-        'sudo',
-        'cloud-init', 'schema',
-        '-c', AZURE_ONE_NODE_CLOUD_INIT_FILE,
-        '--annotate'
-      )
+      shell_command('sudo', 'cloud-init', 'schema', '-c', AZURE_ONE_NODE_CLOUD_INIT_FILE, '--annotate')
     end
 
     desc 'Compile the one-node Azure Bicep template and parameter file'
     task :build do
       ensure_azure_laptop_ip!
       ensure_azure_one_node_admin_ssh_public_key!
-      FileUtils.mkdir_p(AZURE_ONE_NODE_BUILD_DIR)
-      azure_cli(
-        'az', 'bicep', 'build',
-        '--file', AZURE_ONE_NODE_TEMPLATE_FILE,
-        '--outfile', AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE
-      )
-      azure_cli(
-        'az', 'bicep', 'build-params',
-        '--file', AZURE_ONE_NODE_PARAMETERS_FILE,
-        '--outfile', AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
+      build_azure_bicep!(
+        build_dir: AZURE_ONE_NODE_BUILD_DIR,
+        template_file: AZURE_ONE_NODE_TEMPLATE_FILE,
+        parameters_file: AZURE_ONE_NODE_PARAMETERS_FILE,
+        compiled_template_file: AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
+        compiled_parameters_file: AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
@@ -559,22 +533,18 @@ namespace :azure do
 
     desc 'Validate the one-node Azure deployment against the target resource group'
     task validate: [:build] do
-      azure_cli(
-        'az', 'deployment', 'group', 'validate',
-        '--resource-group', azure_resource_group,
-        '--template-file', AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
-        '--parameters', "@#{AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE}"
+      validate_azure_deployment!(
+        AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
+        AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
     desc 'Deploy the one-node Azure lab VM'
     task deploy: [:build] do
-      azure_cli(
-        'az', 'deployment', 'group', 'create',
-        '--name', azure_one_node_deployment_name,
-        '--resource-group', azure_resource_group,
-        '--template-file', AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
-        '--parameters', "@#{AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE}"
+      create_azure_deployment!(
+        azure_one_node_deployment_name,
+        AZURE_ONE_NODE_COMPILED_TEMPLATE_FILE,
+        AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
@@ -585,7 +555,7 @@ namespace :azure do
 
     desc 'Update NSG and VM facts for the current LAPTOP_IP'
     task :update_source_ip do
-      source_cidr = azure_one_node_source_cidr
+      source_cidr = azure_source_cidr
       outputs = azure_one_node_outputs
 
       update_azure_one_node_nsg_source!(source_cidr)
@@ -620,7 +590,6 @@ namespace :azure do
     task acceptance: [:install_agent] do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       env = { 'TARGET_HOST' => target_host }
-
       sh(env, 'bundle', 'exec', 'rspec', AZURE_ONE_NODE_ACCEPTANCE_SPEC)
     end
 
@@ -640,36 +609,24 @@ namespace :azure do
   namespace :multi_node do
     desc 'Lint the multi-node Azure Bicep template'
     task :lint do
-      azure_cli(
-        'az', 'bicep', 'lint',
-        '--file', AZURE_MULTI_NODE_TEMPLATE_FILE
-      )
+      azure_cli('az', 'bicep', 'lint', '--file', AZURE_MULTI_NODE_TEMPLATE_FILE)
     end
 
     desc 'Validate the multi-node cloud-init configuration schema'
     task :cloud_init_schema do
-      shell_command(
-        'sudo',
-        'cloud-init', 'schema',
-        '-c', AZURE_MULTI_NODE_CLOUD_INIT_FILE,
-        '--annotate'
-      )
+      shell_command('sudo', 'cloud-init', 'schema', '-c', AZURE_MULTI_NODE_CLOUD_INIT_FILE, '--annotate')
     end
 
     desc 'Compile the multi-node Azure Bicep template and parameter file'
     task :build do
       ensure_azure_laptop_ip!
       ensure_azure_multi_node_admin_ssh_public_key!
-      FileUtils.mkdir_p(AZURE_MULTI_NODE_BUILD_DIR)
-      azure_cli(
-        'az', 'bicep', 'build',
-        '--file', AZURE_MULTI_NODE_TEMPLATE_FILE,
-        '--outfile', AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE
-      )
-      azure_cli(
-        'az', 'bicep', 'build-params',
-        '--file', AZURE_MULTI_NODE_PARAMETERS_FILE,
-        '--outfile', AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
+      build_azure_bicep!(
+        build_dir: AZURE_MULTI_NODE_BUILD_DIR,
+        template_file: AZURE_MULTI_NODE_TEMPLATE_FILE,
+        parameters_file: AZURE_MULTI_NODE_PARAMETERS_FILE,
+        compiled_template_file: AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
+        compiled_parameters_file: AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
@@ -684,22 +641,18 @@ namespace :azure do
 
     desc 'Validate the multi-node Azure deployment against the target resource group'
     task validate: [:build] do
-      azure_cli(
-        'az', 'deployment', 'group', 'validate',
-        '--resource-group', azure_resource_group,
-        '--template-file', AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
-        '--parameters', "@#{AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE}"
+      validate_azure_deployment!(
+        AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
+        AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
     desc 'Deploy the multi-node Azure lab VMs'
     task deploy: [:build] do
-      azure_cli(
-        'az', 'deployment', 'group', 'create',
-        '--name', azure_multi_node_deployment_name,
-        '--resource-group', azure_resource_group,
-        '--template-file', AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
-        '--parameters', "@#{AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE}"
+      create_azure_deployment!(
+        azure_multi_node_deployment_name,
+        AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE,
+        AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE
       )
     end
 
@@ -710,9 +663,8 @@ namespace :azure do
 
     desc 'Update NSG and VM facts for the current LAPTOP_IP'
     task :update_source_ip do
-      source_cidr = azure_multi_node_source_cidr
+      source_cidr = azure_source_cidr
       nodes = azure_multi_node_outputs
-
       update_azure_multi_node_nsg_source!(source_cidr)
       update_azure_multi_node_fact_source!(nodes, source_cidr)
       puts "Updated #{azure_multi_node_nsg_name} and #{azure_multi_node_source_fact_file} to #{source_cidr}."
