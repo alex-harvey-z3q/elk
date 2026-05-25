@@ -40,6 +40,7 @@
 #
 # azure:one_node:acceptance
 #  |
+#  +-- azure:one_node:source_ip
 #  +-- azure:one_node:install_agent
 #  |    |
 #  |    +-- azure:one_node:check_connectivity
@@ -86,6 +87,7 @@
 #
 # azure:multi_node:acceptance
 #  |
+#  +-- azure:multi_node:source_ip
 #  +-- azure:multi_node:install_agent
 #  |    |
 #  |    +-- azure:multi_node:check_connectivity
@@ -744,7 +746,7 @@ namespace :azure do
     end
 
     desc 'Run acceptance tests against the deployed one-node Azure VM'
-    task acceptance: [:install_agent] do
+    task acceptance: [:source_ip, :install_agent] do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       env = { 'TARGET_HOST' => target_host }
       sh(env, 'bundle', 'exec', 'rspec', AZURE_ONE_NODE_ACCEPTANCE_SPEC)
@@ -847,7 +849,7 @@ namespace :azure do
     end
 
     desc 'Run acceptance tests against the deployed multi-node Azure VMs'
-    task acceptance: [:install_agent] do
+    task acceptance: [:source_ip, :install_agent] do
       azure_multi_node_outputs.each do |node|
         env = {
           'ELK_LAB_ROLE' => node.fetch('role'),
