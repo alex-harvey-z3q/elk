@@ -4,7 +4,8 @@ class profile::base::firewall {
   include profile::base::firewall::pre
   include profile::base::firewall::post
 
-  resources { 'firewall':
+  firewallchain { 'INPUT:filter:IPv4':
+    ensure => present,
     purge => true,
   }
 }

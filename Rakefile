@@ -740,7 +740,11 @@ namespace :azure do
 
     desc 'Run acceptance tests against the deployed multi-node Azure VMs'
     task acceptance: [:install_agent] do
-      sh('bundle', 'exec', 'rspec', AZURE_MULTI_NODE_ACCEPTANCE_SPEC)
+      azure_multi_node_outputs.each do |node|
+        env = { 'TARGET_HOST' => node.fetch('publicIpAddress') }
+        puts "Running multi-node acceptance for #{node.fetch('role')} at #{node.fetch('publicIpAddress')}."
+        sh(env, 'bundle', 'exec', 'rspec', AZURE_MULTI_NODE_ACCEPTANCE_SPEC)
+      end
     end
 
     desc 'Create, test, and destroy the multi-node Azure VMs'

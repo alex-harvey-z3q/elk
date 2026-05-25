@@ -19,6 +19,16 @@ profile::base::firewall_multis:
     proto: tcp
     source:
       - "%{facts.elk_lab_source_cidr}"
+  '00100 accept tcp ports for ELK traffic inside the Azure lab subnet':
+    dport:
+      - 80
+      - 5044
+      - 5601
+      - 9200
+    jump: accept
+    proto: tcp
+    source:
+      - 10.43.1.0/24
 profile::base::tools:
   vim:
     ensure: installed
