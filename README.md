@@ -104,9 +104,9 @@ Litmus utility modules are pulled from their upstream GitHub repositories by
 
 ## Azure Topologies
 
-Each Azure deployment topology lives in its own directory under `infra/`. The
-current topology is `infra/azure-one-node`; a future multi-node topology can be
-added as `infra/azure-multi-node` without reshaping the one-node test target.
+Each Azure deployment topology lives in its own directory under `infra/`.
+The current topologies are `infra/azure-one-node` and
+`infra/azure-multi-node`.
 
 For manual deployment and iteration, create the shared resource group before
 deploying a topology:
@@ -285,9 +285,10 @@ Each VM gets its own public IP for SSH during lab work, with SSH and exposed lab
 ports restricted to `LAPTOP_IP`. The NSG also allows the ELK ports within the
 lab subnet so the nodes can communicate over their private addresses.
 
-The multi-node infrastructure is ready for deployment and static validation,
-but the Puppet roles and Litmus acceptance tests are still one-node oriented.
-Do not expect `azure:one_node:acceptance` to validate this topology yet.
+The multi-node Puppet role uses the `elk_lab_role` external fact written by
+cloud-init to choose the correct node profile. Elasticsearch, Logstash, Kibana,
+and Edge/Nginx nodes use role-specific Hiera data under
+`spec/fixtures/hieradata/roles`.
 
 #### Deployment
 
@@ -376,6 +377,38 @@ bundle exec rake azure:one_node:source_ip
 bundle exec rake azure:one_node:check_connectivity
 bundle exec rake azure:one_node:install_agent
 TARGET_HOST=<public-ip> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
+```
+
+Run multi-node acceptance tests on fresh Azure infrastructure and clean up
+afterwards:
+
+```bash
+export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+bundle exec rake azure:multi_node:acceptance_ephemeral
+```
+
+To run the multi-node acceptance tests against an existing deployment:
+
+```bash
+bundle exec rake azure:multi_node:acceptance
+```
+
+That task writes a Litmus inventory with all four Azure VMs, checks SSH
+connectivity, installs the Puppet 8 agent on each VM, stages the control repo
+fixtures, applies `role::elk_multi_node`, and runs
+`spec/acceptance/role_elk_multi_node_spec.rb`. The acceptance spec checks the
+role-specific services and cross-node configuration for Elasticsearch,
+Logstash, Kibana, and Edge/Nginx.
+
+The multi-node acceptance flow can also be run in smaller steps:
+
+```bash
+bundle exec rake azure:multi_node:inventory
+bundle exec rake azure:multi_node:source_ip
+bundle exec rake azure:multi_node:check_connectivity
+bundle exec rake azure:multi_node:install_agent
+bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
 ```
 
 ## Security Note

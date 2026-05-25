@@ -1,0 +1,3 @@
+---
+profile::logstash::elasticsearch_hosts:
+  - http://10.43.1.10:9200

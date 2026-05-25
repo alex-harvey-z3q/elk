@@ -4,5 +4,6 @@ hierarchy:
   - name: Yaml backend
     data_hash: yaml_data
     paths:
+      - "roles/%{facts.elk_lab_role}.yaml"
       - 'common.yaml'
     datadir: /etc/puppetlabs/code/hieradata

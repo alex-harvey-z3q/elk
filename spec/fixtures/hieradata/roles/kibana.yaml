@@ -1,0 +1,8 @@
+---
+profile::base::filebeat::output_hosts:
+  - 10.43.1.11:5044
+kibana::config:
+  'server.host': 0.0.0.0
+  'server.port': 5601
+  'elasticsearch.hosts':
+    - http://10.43.1.10:9200

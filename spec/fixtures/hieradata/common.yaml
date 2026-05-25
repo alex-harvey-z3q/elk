@@ -46,9 +46,9 @@ logstash::pipelines:
   - 'pipeline.id': main
     'path.config': /etc/logstash/conf.d/main.conf
 profile::logstash::configfiles:
-  'main.conf':
-    source: puppet:///modules/profile/logstash/conf.d/main.conf
-    path: /etc/logstash/conf.d/main.conf
+  {}
+profile::logstash::elasticsearch_hosts:
+  - http://localhost:9200
 profile::logstash::patternfiles: {}
 
 # profile::elasticsearch

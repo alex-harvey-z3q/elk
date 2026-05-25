@@ -1,0 +1,14 @@
+### MANAGED BY PUPPET ###
+input {
+  beats {
+    port => 5044
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => [<%= $elasticsearch_hosts.map |$host| { "\"${host}\"" }.join(', ') %>]
+    index => "logstash-%{+YYYY.MM.dd}"
+    manage_template => false
+  }
+}

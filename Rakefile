@@ -26,6 +26,10 @@ YAML_LINT_FILES = [
   'spec/fixtures/hiera.yaml',
   'spec/fixtures/hiera.yaml.acceptance',
   'spec/fixtures/hieradata/common.yaml',
+  'spec/fixtures/hieradata/roles/edge.yaml',
+  'spec/fixtures/hieradata/roles/elasticsearch.yaml',
+  'spec/fixtures/hieradata/roles/kibana.yaml',
+  'spec/fixtures/hieradata/roles/logstash.yaml',
   '.github/workflows/ci.yml',
   '.fixtures.yml',
   'infra/azure-one-node/cloud-init.yaml',
@@ -48,6 +52,9 @@ AZURE_MULTI_NODE_CLOUD_INIT_FILE = 'infra/azure-multi-node/cloud-init.yaml'
 AZURE_MULTI_NODE_BUILD_DIR = File.join(Dir.tmpdir, 'elk-azure-multi-node-bicep')
 AZURE_MULTI_NODE_COMPILED_TEMPLATE_FILE = File.join(AZURE_MULTI_NODE_BUILD_DIR, 'main.json')
 AZURE_MULTI_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_MULTI_NODE_BUILD_DIR, 'main.parameters.json')
+AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
+AZURE_MULTI_NODE_PUPPET_COLLECTION = 'puppet8'
+AZURE_MULTI_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_multi_node_spec.rb'
 
 desc 'Run yamllint over repository YAML files'
 task :yaml_lint do
@@ -487,6 +494,46 @@ def write_azure_one_node_litmus_inventory(outputs)
   puts "Wrote #{AZURE_ONE_NODE_LITMUS_INVENTORY_FILE} for #{outputs.fetch('publicIpAddress')}"
 end
 
+def write_azure_multi_node_litmus_inventory(nodes)
+  inventory = {
+    'groups' => [
+      {
+        'name' => 'ssh_nodes',
+        'targets' => nodes.map do |node|
+          {
+            'uri' => node.fetch('publicIpAddress'),
+            'config' => {
+              'transport' => 'ssh',
+              'ssh' => {
+                'user' => node.fetch('adminUsername'),
+                'run-as' => 'root',
+                'host-key-check' => false,
+              },
+            },
+            'facts' => {
+              'platform' => 'almalinux-9-x86_64',
+              'provisioner' => 'azure',
+            },
+            'vars' => {
+              'role' => node.fetch('role'),
+              'vm_name' => node.fetch('vmName'),
+              'private_ip_address' => node.fetch('privateIpAddress'),
+            },
+          }
+        end,
+      },
+      {
+        'name' => 'winrm_nodes',
+        'targets' => [],
+      },
+    ],
+  }
+
+  FileUtils.mkdir_p(File.dirname(AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE))
+  File.write(AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE, YAML.dump(inventory))
+  puts "Wrote #{AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE} for #{nodes.length} Azure multi-node targets."
+end
+
 namespace :azure do
   desc 'Create the Azure resource group if it does not already exist'
   task :resource_group do
@@ -661,6 +708,11 @@ namespace :azure do
       print_azure_multi_node_outputs(azure_multi_node_outputs)
     end
 
+    desc 'Write Litmus inventory for the deployed multi-node Azure VMs'
+    task :inventory do
+      write_azure_multi_node_litmus_inventory(azure_multi_node_outputs)
+    end
+
     desc 'Update NSG and VM facts for the current LAPTOP_IP'
     task :update_source_ip do
       source_cidr = azure_source_cidr
@@ -674,6 +726,33 @@ namespace :azure do
     task :source_ip do
       assert_azure_multi_node_source_ip!
       puts "Current public IP matches #{azure_multi_node_nsg_name} AllowSsh."
+    end
+
+    desc 'Check Litmus SSH connectivity to the deployed multi-node Azure VMs'
+    task check_connectivity: [:inventory] do
+      sh('bundle', 'exec', 'rake', 'litmus:check_connectivity')
+    end
+
+    desc 'Install the Puppet agent on the deployed multi-node Azure VMs'
+    task install_agent: [:check_connectivity] do
+      sh('bundle', 'exec', 'rake', "litmus:install_agent[#{AZURE_MULTI_NODE_PUPPET_COLLECTION}]")
+    end
+
+    desc 'Run acceptance tests against the deployed multi-node Azure VMs'
+    task acceptance: [:install_agent] do
+      sh('bundle', 'exec', 'rspec', AZURE_MULTI_NODE_ACCEPTANCE_SPEC)
+    end
+
+    desc 'Create, test, and destroy the multi-node Azure VMs'
+    task :acceptance_ephemeral do
+      begin
+        Rake::Task['azure:resource_group'].invoke
+        Rake::Task['azure:multi_node:validate'].invoke
+        Rake::Task['azure:multi_node:deploy'].invoke
+        Rake::Task['azure:multi_node:acceptance'].invoke
+      ensure
+        destroy_azure_resource_group!(wait: true)
+      end
     end
   end
 end

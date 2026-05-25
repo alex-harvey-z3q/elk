@@ -1,0 +1,3 @@
+---
+profile::base::filebeat::output_hosts:
+  - 10.43.1.11:5044

@@ -4,13 +4,16 @@ class profile::logstash (
 
   Hash[String, Hash] $firewall_multis,
 
-  Hash[String, Struct[{
-    source => Pattern[/puppet:\/\/\//],
-    path   => Stdlib::Absolutepath }]] $configfiles,
+  Array[String[1]] $elasticsearch_hosts = ['http://localhost:9200'],
+  Stdlib::Absolutepath $main_config_path = '/etc/logstash/conf.d/main.conf',
 
   Hash[String, Struct[{
     source => Pattern[/puppet:\/\/\//],
-    path   => Stdlib::Absolutepath }]] $patternfiles,
+    path   => Stdlib::Absolutepath }]] $configfiles = {},
+
+  Hash[String, Struct[{
+    source => Pattern[/puppet:\/\/\//],
+    path   => Stdlib::Absolutepath }]] $patternfiles = {},
 
 ) {
   create_resources(firewall_multi, $firewall_multis)
@@ -34,6 +37,16 @@ class profile::logstash (
   User['logstash'] -> Package['logstash']
 
   include logstash
+
+  file { $main_config_path:
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => epp('profile/logstash-main.conf.epp', {'elasticsearch_hosts' => $elasticsearch_hosts}),
+    require => Package['logstash'],
+    notify  => Service['logstash'],
+  }
 
   create_resources(logstash::configfile, $configfiles)
   create_resources(logstash::patternfile, $patternfiles)
