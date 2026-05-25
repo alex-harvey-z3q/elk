@@ -391,17 +391,29 @@ fixtures, applies `role::elk_multi_node`, and runs
 role-specific services and cross-node configuration for Elasticsearch,
 Logstash, Kibana, and Edge/Nginx.
 
-The multi-node acceptance flow can also be run in smaller steps:
+The multi-node acceptance flow can also be run in smaller steps. Unlike the
+one-node spec, the multi-node spec must be run once per VM with both the role
+and target host set. Use the public IPs from `azure:multi_node:outputs` when
+filling in the commands below:
 
 ```bash
+bundle exec rake azure:multi_node:outputs
 bundle exec rake azure:multi_node:inventory
 bundle exec rake azure:multi_node:source_ip
 bundle exec rake azure:multi_node:check_connectivity
 bundle exec rake azure:multi_node:install_agent
-ELK_LAB_ROLE=elasticsearch TARGET_HOST=<elasticsearch-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
-ELK_LAB_ROLE=logstash TARGET_HOST=<logstash-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
-ELK_LAB_ROLE=kibana TARGET_HOST=<kibana-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
-ELK_LAB_ROLE=edge TARGET_HOST=<edge-public-ip> bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=elasticsearch \
+  TARGET_HOST=<elasticsearch-public-ip> \
+  bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=logstash \
+  TARGET_HOST=<logstash-public-ip> \
+  bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=kibana \
+  TARGET_HOST=<kibana-public-ip> \
+  bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+ELK_LAB_ROLE=edge \
+  TARGET_HOST=<edge-public-ip> \
+  bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
 ```
 
 ## Security Note
