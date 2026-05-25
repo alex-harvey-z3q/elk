@@ -12,6 +12,8 @@
         - [Architecture](#architecture-2)
         - [Deployment](#deployment)
     * [Multi-Node Topology](#multi-node-topology)
+        - [Architecture](#architecture-3)
+        - [Deployment](#deployment-2)
 7. [Testing](#testing)
 8. [Security Note](#security-note)
 9. [License](#license)
@@ -228,6 +230,8 @@ bundle exec rake azure:one_node:update_source_ip
 
 ### Multi-Node Topology
 
+#### Architecture
+
 The `infra/azure-multi-node` Bicep template provisions four AlmaLinux 9 VMs
 for a distributed ELK lab:
 
@@ -284,6 +288,8 @@ lab subnet so the nodes can communicate over their private addresses.
 The multi-node infrastructure is ready for deployment and static validation,
 but the Puppet roles and Litmus acceptance tests are still one-node oriented.
 Do not expect `azure:one_node:acceptance` to validate this topology yet.
+
+#### Deployment
 
 Export the multi-node SSH key input, then build, validate, deploy, and inspect
 the topology:
