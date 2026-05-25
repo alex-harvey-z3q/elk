@@ -117,7 +117,9 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
       'imageSku',
       'imageVersion',
       'customDataTemplate',
-      'sourceFactFile'
+      'sourceFactFile',
+      'vnetAddressPrefix',
+      'subnetAddressPrefix'
     )
     expect(parameter_value('location')).to eq('australiaeast')
     expect(parameter_value('resourceGroupName')).to eq('rg-elk-lab')
@@ -127,5 +129,7 @@ RSpec.describe 'compiled one-node Azure template', :azure_static do
     expect(parameter_value('dataDiskStorageAccountType')).to eq('Premium_LRS')
     expect(parameter_value('imageSku')).to eq('9-gen2')
     expect(parameter_value('sourceFactFile')).to eq('/etc/facter/facts.d/elk_lab.yaml')
+    expect(parameter_value('vnetAddressPrefix')).to eq('10.42.0.0/16')
+    expect(parameter_value('subnetAddressPrefix')).to eq('10.42.1.0/24')
   end
 end

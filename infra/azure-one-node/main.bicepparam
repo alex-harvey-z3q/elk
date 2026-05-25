@@ -20,3 +20,5 @@ param imageSku = '9-gen2'
 param imageVersion = 'latest'
 param customDataTemplate = loadTextContent('cloud-init.yaml')
 param sourceFactFile = '/etc/facter/facts.d/elk_lab.yaml'
+param vnetAddressPrefix = '10.42.0.0/16'
+param subnetAddressPrefix = '10.42.1.0/24'

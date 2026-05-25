@@ -60,6 +60,12 @@ param customDataTemplate string
 @description('Path to the external fact file refreshed by the lab orchestration tasks.')
 param sourceFactFile string
 
+@description('Address prefix for the one-node lab virtual network.')
+param vnetAddressPrefix string
+
+@description('Address prefix for the one-node lab subnet.')
+param subnetAddressPrefix string
+
 var safePrefix = take(toLower(replace(namePrefix, '_', '-')), 40)
 var vnetName = '${safePrefix}-vnet'
 var subnetName = 'default'
@@ -75,14 +81,14 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '10.42.0.0/16'
+        vnetAddressPrefix
       ]
     }
     subnets: [
       {
         name: subnetName
         properties: {
-          addressPrefix: '10.42.1.0/24'
+          addressPrefix: subnetAddressPrefix
           networkSecurityGroup: {
             id: nsg.id
           }
