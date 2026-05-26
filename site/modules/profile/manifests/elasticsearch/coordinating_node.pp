@@ -4,5 +4,9 @@ class profile::elasticsearch::coordinating_node (
 ) {
   create_resources(firewall_multi, $firewall_multis)
 
-  warning('profile::elasticsearch::coordinating_node is deprecated: puppet/elasticsearch 7+ manages one Elasticsearch service per node. Use a dedicated host with node.roles => [] if you need a coordinating-only node.')
+  $deprecation_message = 'profile::elasticsearch::coordinating_node is deprecated: ' +
+    'puppet/elasticsearch 7+ manages one Elasticsearch service per node. ' +
+    'Use a dedicated host with node.roles => [] if you need a coordinating-only node.'
+
+  warning($deprecation_message)
 }
