@@ -190,7 +190,6 @@ AZURE_ONE_NODE_COMPILED_PARAMETERS_FILE = File.join(AZURE_ONE_NODE_BUILD_DIR, 'm
 AZURE_ONE_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
 AZURE_ONE_NODE_PUPPET_COLLECTION = 'puppet8'
 AZURE_ONE_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_stack_spec.rb'
-AZURE_ONE_NODE_PUBLIC_IP_SERVICE = 'https://ifconfig.me'
 AZURE_PIPELINE_ACCEPTANCE_SPEC = 'spec/acceptance/elk_pipeline_spec.rb'
 AZURE_MULTI_NODE_TEMPLATE_FILE = 'infra/azure-multi-node/main.bicep'
 AZURE_MULTI_NODE_PARAMETERS_FILE = 'infra/azure-multi-node/main.bicepparam'
@@ -547,71 +546,44 @@ def azure_multi_node_ssh_source_cidr
   azure_ssh_source_cidr(azure_multi_node_nsg_name)
 end
 
-def current_public_ip
-  public_ip = capture_command('curl', '-4', '-s', AZURE_ONE_NODE_PUBLIC_IP_SERVICE)
-  return public_ip if IPAddr.new(public_ip).ipv4?
-
-  abort <<~MESSAGE
-    Could not determine a valid public IPv4 address.
-
-    Current value:
-      #{public_ip}
-
-    Check your network or set LAPTOP_IP explicitly:
-      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
-  MESSAGE
-rescue IPAddr::InvalidAddressError
-  abort <<~MESSAGE
-    Could not determine a valid public IPv4 address.
-
-    Current value:
-      #{public_ip}
-
-    Check your network or set LAPTOP_IP explicitly:
-      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
-  MESSAGE
-end
-
 def assert_azure_one_node_source_ip!
   allowed_source = azure_one_node_ssh_source_cidr
-  actual_source = "#{current_public_ip}/32"
-  return if allowed_source == actual_source
+  expected_source = azure_source_cidr
+  return if allowed_source == expected_source
 
   abort <<~MESSAGE
-    Current public IP does not match the Azure one-node SSH allow-list.
+    LAPTOP_IP does not match the Azure one-node SSH allow-list.
 
     Azure NSG AllowSsh source:
       #{allowed_source}
 
-    Current public IP:
-      #{actual_source}
+    LAPTOP_IP source:
+      #{expected_source}
 
-    Update the one-node source IP with the current LAPTOP_IP before running
-    acceptance tests:
+    Update the one-node source IP with LAPTOP_IP before running acceptance
+    tests:
 
-      export LAPTOP_IP=#{actual_source.delete_suffix('/32')}
       bundle exec rake azure:one_node:update_source_ip
   MESSAGE
 end
 
 def assert_azure_multi_node_source_ip!
   allowed_source = azure_multi_node_ssh_source_cidr
-  actual_source = "#{current_public_ip}/32"
-  return if allowed_source == actual_source
+  expected_source = azure_source_cidr
+  return if allowed_source == expected_source
 
   abort <<~MESSAGE
-    Current public IP does not match the Azure multi-node SSH allow-list.
+    LAPTOP_IP does not match the Azure multi-node SSH allow-list.
 
     Azure NSG AllowSsh source:
       #{allowed_source}
 
-    Current public IP:
-      #{actual_source}
+    LAPTOP_IP source:
+      #{expected_source}
 
-    Update the multi-node source IP with the current LAPTOP_IP before using
-    the deployed VMs:
+    Update the multi-node source IP with LAPTOP_IP before using the deployed
+    VMs:
 
-      export LAPTOP_IP=#{actual_source.delete_suffix('/32')}
       bundle exec rake azure:multi_node:update_source_ip
   MESSAGE
 end
@@ -886,10 +858,10 @@ namespace :azure do
       write_azure_one_node_litmus_inventory(azure_one_node_outputs)
     end
 
-    desc 'Check current public IP against the Azure one-node SSH allow-list'
+    desc 'Check LAPTOP_IP against the Azure one-node SSH allow-list'
     task :source_ip do
       assert_azure_one_node_source_ip!
-      puts "Current public IP matches #{azure_one_node_nsg_name} AllowSsh."
+      puts "LAPTOP_IP matches #{azure_one_node_nsg_name} AllowSsh."
     end
 
     desc 'Check Litmus SSH connectivity to the deployed one-node Azure VM'
@@ -993,10 +965,10 @@ namespace :azure do
       puts "Updated #{azure_multi_node_nsg_name} and #{azure_multi_node_source_fact_file} to #{source_cidr}."
     end
 
-    desc 'Check current public IP against the Azure multi-node SSH allow-list'
+    desc 'Check LAPTOP_IP against the Azure multi-node SSH allow-list'
     task :source_ip do
       assert_azure_multi_node_source_ip!
-      puts "Current public IP matches #{azure_multi_node_nsg_name} AllowSsh."
+      puts "LAPTOP_IP matches #{azure_multi_node_nsg_name} AllowSsh."
     end
 
     desc 'Check Litmus SSH connectivity to the deployed multi-node Azure VMs'

@@ -353,7 +353,7 @@ bundle exec rake azure:one_node:acceptance
 ```
 
 That task writes `spec/fixtures/litmus_inventory.yaml` from the Azure resources,
-checks that your current public IP still matches the Azure SSH allow-list,
+checks that `LAPTOP_IP` still matches the Azure SSH allow-list,
 checks SSH connectivity, installs the Puppet 8 agent with Litmus, stages the
 control repo fixtures on the VM, applies `role::elk_stack`, and runs
 `spec/acceptance/role_elk_stack_spec.rb`. It then runs the shared pipeline
@@ -390,7 +390,7 @@ bundle exec rake azure:multi_node:acceptance
 ```
 
 That task writes a Litmus inventory with all four Azure VMs, checks that your
-current public IP still matches the Azure SSH allow-list, checks SSH
+`LAPTOP_IP` still matches the Azure SSH allow-list, checks SSH
 connectivity, installs the Puppet 8 agent on each VM, stages the control repo
 fixtures, applies `role::elk_multi_node`, and runs
 `spec/acceptance/role_elk_multi_node_spec.rb`. The acceptance spec checks the
