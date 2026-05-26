@@ -56,34 +56,33 @@ class profile::elasticsearch::data_node (
 
   Mount[$datadir] -> File[$datadir]
 
-  $remove_autoconfig_keystore_script = [
-    '#!/bin/sh',
-    'set -eu',
-    '',
-    'export ES_PATH_CONF=/etc/elasticsearch',
-    'keystore=/usr/share/elasticsearch/bin/elasticsearch-keystore',
-    'settings="',
-    'xpack.security.http.ssl.keystore.secure_password',
-    'xpack.security.transport.ssl.keystore.secure_password',
-    'xpack.security.transport.ssl.truststore.secure_password',
-    '"',
-    '',
-    'if [ "${1:-}" = "--check" ]; then',
-    '  for setting in ${settings}; do',
-    '    if "${keystore}" list | grep -Fxq "${setting}"; then',
-    '      exit 0',
-    '    fi',
-    '  done',
-    '  exit 1',
-    'fi',
-    '',
-    'for setting in ${settings}; do',
-    '  if "${keystore}" list | grep -Fxq "${setting}"; then',
-    '    "${keystore}" remove "${setting}"',
-    '  fi',
-    'done',
-    '',
-  ].join("\n")
+  $remove_autoconfig_keystore_script = @(SCRIPT)
+    #!/bin/sh
+    set -eu
+
+    export ES_PATH_CONF=/etc/elasticsearch
+    keystore=/usr/share/elasticsearch/bin/elasticsearch-keystore
+    settings="
+    xpack.security.http.ssl.keystore.secure_password
+    xpack.security.transport.ssl.keystore.secure_password
+    xpack.security.transport.ssl.truststore.secure_password
+    "
+
+    if [ "${1:-}" = "--check" ]; then
+      for setting in ${settings}; do
+        if "${keystore}" list | grep -Fxq "${setting}"; then
+          exit 0
+        fi
+      done
+      exit 1
+    fi
+
+    for setting in ${settings}; do
+      if "${keystore}" list | grep -Fxq "${setting}"; then
+        "${keystore}" remove "${setting}"
+      fi
+    done
+    SCRIPT
 
   file { '/usr/local/sbin/elk-remove-elasticsearch-autoconfig-keystore':
     ensure  => file,
