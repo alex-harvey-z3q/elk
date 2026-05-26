@@ -184,7 +184,7 @@ automatically so the Azure NSG and host firewall open only for that single IP.
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
-export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(<~/.ssh/id_ed25519.pub)"
 ```
 
 The one-node topology otherwise uses fixed lab values recorded in
@@ -295,7 +295,7 @@ topology:
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
-export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(< ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:multi_node:deploy
 bundle exec rake azure:multi_node:outputs
 ```
@@ -320,7 +320,7 @@ assertions against the compiled ARM JSON:
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
-export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(< ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:one_node:static
 ```
 
@@ -336,7 +336,7 @@ Run the multi-node Azure static checks:
 
 ```bash
 export LAPTOP_IP=<your-public-ipv4>
-export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(< ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:multi_node:static
 ```
 
@@ -344,7 +344,7 @@ Run acceptance tests on fresh Azure infrastructure and clean up afterwards:
 
 ```bash
 export LAPTOP_IP="$(curl -4 -s https://ifconfig.me)"
-export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(< ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:one_node:acceptance_ephemeral
 ```
 
@@ -386,7 +386,7 @@ afterwards:
 
 ```bash
 export LAPTOP_IP="$(curl -4 -s https://ifconfig.me)"
-export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
+export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(< ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:multi_node:acceptance_ephemeral
 ```
 
