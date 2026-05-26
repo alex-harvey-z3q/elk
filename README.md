@@ -108,6 +108,13 @@ Each Azure deployment topology lives in its own directory under `infra/`.
 The current topologies are `infra/azure-one-node` and
 `infra/azure-multi-node`.
 
+Azure is used here because Resource Groups give the acceptance test
+environment a clear lifecycle boundary. The ephemeral test tasks can create a
+dedicated resource group, deploy every lab resource into it, run the tests, and
+then delete the group as the cleanup step. That keeps the cloud resources for a
+test run easier to reason about than relying on tag-based cleanup or tracking
+each VM, disk, NIC, public IP, and security rule separately.
+
 Destroy the lab resource group when finished:
 
 ```bash
