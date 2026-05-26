@@ -314,6 +314,15 @@ Run static checks and catalog tests:
 bundle exec rake test
 ```
 
+The generated Puppet Strings reference lives in `docs/INFO.md`. Regenerate it
+after changing Puppet classes, then let the normal lint task verify it is
+current:
+
+```bash
+bundle exec rake docs_generate
+bundle exec rake lint
+```
+
 Run the Azure static checks. These lint the Bicep template, validate the
 cloud-init schema, compile the Bicep template and parameter file, and run RSpec
 assertions against the compiled ARM JSON:

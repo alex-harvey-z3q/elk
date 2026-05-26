@@ -13,8 +13,16 @@
 #  |    +-- yaml_lint
 #  |    +-- rubocop
 #  |    +-- bundle_audit
+#  |    +-- docs_reference
+#  |         |
+#  |         +-- puppet strings generate to temp file
+#  |         +-- compare with docs/INFO.md
 #  |
 #  +-- spec
+#
+# docs_generate
+#  |
+#  +-- puppet strings generate docs/INFO.md
 #
 #
 # One-node Azure
@@ -181,6 +189,13 @@ PUPPET_EPP_FILES = FileList[
   'site/**/*.epp'
 ].to_a.freeze
 
+PUPPET_STRINGS_FILES = FileList[
+  'manifests/**/*.pp',
+  'site/**/*.pp'
+].to_a.freeze
+
+PUPPET_STRINGS_REFERENCE_FILE = 'docs/INFO.md'
+
 AZURE_ONE_NODE_TEMPLATE_FILE = 'infra/azure-one-node/main.bicep'
 AZURE_ONE_NODE_PARAMETERS_FILE = 'infra/azure-one-node/main.bicepparam'
 AZURE_ONE_NODE_CLOUD_INIT_FILE = 'infra/azure-one-node/cloud-init.yaml'
@@ -230,6 +245,32 @@ task :bundle_audit do
   sh('bundle', 'exec', 'bundle-audit', 'check', '--update')
 end
 
+desc 'Regenerate Puppet Strings reference documentation'
+task :docs_generate do
+  sh('bundle', 'exec', 'puppet', 'strings', 'generate',
+     '--format', 'markdown',
+     '--out', PUPPET_STRINGS_REFERENCE_FILE,
+     *PUPPET_STRINGS_FILES)
+end
+
+desc 'Validate generated Puppet Strings reference documentation'
+task :docs_reference do
+  generated_reference = File.join(Dir.tmpdir, 'elk-puppet-strings-info.md')
+  sh('bundle', 'exec', 'puppet', 'strings', 'generate',
+     '--format', 'markdown',
+     '--out', generated_reference,
+     *PUPPET_STRINGS_FILES)
+
+  next if FileUtils.compare_file(PUPPET_STRINGS_REFERENCE_FILE, generated_reference)
+
+  abort <<~MESSAGE
+    #{PUPPET_STRINGS_REFERENCE_FILE} is out of date.
+
+    Regenerate it with:
+      bundle exec rake docs_generate
+  MESSAGE
+end
+
 Rake::Task[:lint].enhance(
   %i[
     ruby_syntax
@@ -238,6 +279,7 @@ Rake::Task[:lint].enhance(
     yaml_lint
     rubocop
     bundle_audit
+    docs_reference
   ]
 )
 
