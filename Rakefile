@@ -56,6 +56,9 @@
 #  |
 #  +-- litmus:install_agent[puppet8]
 #  +-- rspec spec/acceptance/role_elk_stack_spec.rb
+#  +-- azure:pipeline_acceptance
+#       |
+#       +-- rspec spec/acceptance/elk_pipeline_spec.rb
 #
 # azure:one_node:acceptance_ephemeral
 #  |
@@ -108,6 +111,10 @@
 #  |    +-- ELK_LAB_ROLE=logstash      TARGET_HOST=<logstash-ip>
 #  |    +-- ELK_LAB_ROLE=kibana        TARGET_HOST=<kibana-ip>
 #  |    +-- ELK_LAB_ROLE=edge          TARGET_HOST=<edge-ip>
+#  |
+#  +-- azure:pipeline_acceptance
+#       |
+#       +-- rspec spec/acceptance/elk_pipeline_spec.rb
 #
 # azure:multi_node:acceptance_ephemeral
 #  |
@@ -184,6 +191,7 @@ AZURE_ONE_NODE_LITMUS_INVENTORY_FILE = 'spec/fixtures/litmus_inventory.yaml'
 AZURE_ONE_NODE_PUPPET_COLLECTION = 'puppet8'
 AZURE_ONE_NODE_ACCEPTANCE_SPEC = 'spec/acceptance/role_elk_stack_spec.rb'
 AZURE_ONE_NODE_PUBLIC_IP_SERVICE = 'https://ifconfig.me'
+AZURE_PIPELINE_ACCEPTANCE_SPEC = 'spec/acceptance/elk_pipeline_spec.rb'
 AZURE_MULTI_NODE_TEMPLATE_FILE = 'infra/azure-multi-node/main.bicep'
 AZURE_MULTI_NODE_PARAMETERS_FILE = 'infra/azure-multi-node/main.bicepparam'
 AZURE_MULTI_NODE_CLOUD_INIT_FILE = 'infra/azure-multi-node/cloud-init.yaml'
@@ -246,7 +254,7 @@ def ensure_azure_laptop_ip!
     Set LAPTOP_IP before running this task.
 
     Example:
-      export LAPTOP_IP=$(curl -s https://ifconfig.me)
+      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
   MESSAGE
 
   parsed_ip = IPAddr.new(laptop_ip)
@@ -259,7 +267,7 @@ def ensure_azure_laptop_ip!
       LAPTOP_IP=#{laptop_ip}
 
     Example:
-      export LAPTOP_IP=$(curl -s https://ifconfig.me)
+      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
   MESSAGE
 rescue IPAddr::InvalidAddressError
   abort <<~MESSAGE
@@ -269,7 +277,7 @@ rescue IPAddr::InvalidAddressError
       LAPTOP_IP=#{laptop_ip}
 
     Example:
-      export LAPTOP_IP=$(curl -s https://ifconfig.me)
+      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
   MESSAGE
 end
 
@@ -540,7 +548,28 @@ def azure_multi_node_ssh_source_cidr
 end
 
 def current_public_ip
-  capture_command('curl', '-s', AZURE_ONE_NODE_PUBLIC_IP_SERVICE)
+  public_ip = capture_command('curl', '-4', '-s', AZURE_ONE_NODE_PUBLIC_IP_SERVICE)
+  return public_ip if IPAddr.new(public_ip).ipv4?
+
+  abort <<~MESSAGE
+    Could not determine a valid public IPv4 address.
+
+    Current value:
+      #{public_ip}
+
+    Check your network or set LAPTOP_IP explicitly:
+      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
+  MESSAGE
+rescue IPAddr::InvalidAddressError
+  abort <<~MESSAGE
+    Could not determine a valid public IPv4 address.
+
+    Current value:
+      #{public_ip}
+
+    Check your network or set LAPTOP_IP explicitly:
+      export LAPTOP_IP=$(curl -4 -s https://ifconfig.me)
+  MESSAGE
 end
 
 def assert_azure_one_node_source_ip!
@@ -745,7 +774,38 @@ def write_azure_multi_node_litmus_inventory(nodes)
   puts "Wrote #{AZURE_MULTI_NODE_LITMUS_INVENTORY_FILE} for #{nodes.length} Azure multi-node targets."
 end
 
+def ensure_pipeline_acceptance_env!
+  %w[LOG_SOURCE_TARGET ELASTICSEARCH_TARGET ELASTICSEARCH_URL].each do |name|
+    next unless ENV[name].to_s.strip.empty?
+
+    abort <<~MESSAGE
+      Set #{name} before running azure:pipeline_acceptance.
+
+      Example:
+        LOG_SOURCE_TARGET=<source-public-ip> \\
+        ELASTICSEARCH_TARGET=<elasticsearch-public-ip> \\
+        ELASTICSEARCH_URL=http://localhost:9200 \\
+        bundle exec rake azure:pipeline_acceptance
+    MESSAGE
+  end
+end
+
+def run_azure_pipeline_acceptance!(log_source_target:, elasticsearch_target:)
+  env = {
+    'LOG_SOURCE_TARGET' => log_source_target,
+    'ELASTICSEARCH_TARGET' => elasticsearch_target,
+    'ELASTICSEARCH_URL' => 'http://localhost:9200'
+  }
+  sh(env, 'bundle', 'exec', 'rake', 'azure:pipeline_acceptance')
+end
+
 namespace :azure do
+  desc 'Run the ELK pipeline acceptance test against the supplied Azure targets'
+  task :pipeline_acceptance do
+    ensure_pipeline_acceptance_env!
+    sh('bundle', 'exec', 'rspec', AZURE_PIPELINE_ACCEPTANCE_SPEC)
+  end
+
   desc 'Create the Azure resource group if it does not already exist'
   task :resource_group do
     azure_cli('az', 'group', 'create', '--name', azure_resource_group, '--location', azure_location)
@@ -849,6 +909,10 @@ namespace :azure do
       target_host = azure_one_node_outputs.fetch('publicIpAddress')
       env = { 'TARGET_HOST' => target_host }
       sh(env, 'bundle', 'exec', 'rspec', AZURE_ONE_NODE_ACCEPTANCE_SPEC)
+      run_azure_pipeline_acceptance!(
+        log_source_target: target_host,
+        elasticsearch_target: target_host
+      )
     end
 
     desc 'Create, test, and destroy the one-node Azure VM'
@@ -947,7 +1011,8 @@ namespace :azure do
 
     desc 'Run acceptance tests against the deployed multi-node Azure VMs'
     task acceptance: %i[source_ip install_agent] do
-      azure_multi_node_outputs.each do |node|
+      nodes = azure_multi_node_outputs
+      nodes.each do |node|
         env = {
           'ELK_LAB_ROLE' => node.fetch('role'),
           'TARGET_HOST' => node.fetch('publicIpAddress')
@@ -955,6 +1020,11 @@ namespace :azure do
         puts "Running multi-node acceptance for #{node.fetch('role')} at #{node.fetch('publicIpAddress')}."
         sh(env, 'bundle', 'exec', 'rspec', AZURE_MULTI_NODE_ACCEPTANCE_SPEC)
       end
+
+      run_azure_pipeline_acceptance!(
+        log_source_target: nodes.find { |node| node.fetch('role') == 'edge' }.fetch('publicIpAddress'),
+        elasticsearch_target: nodes.find { |node| node.fetch('role') == 'elasticsearch' }.fetch('publicIpAddress')
+      )
     end
 
     desc 'Create, test, and destroy the multi-node Azure VMs'

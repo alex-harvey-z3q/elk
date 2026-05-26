@@ -215,7 +215,7 @@ change after VM creation, and the one-node bootstrap data includes the source
 CIDR used by Puppet firewall facts.
 
 ```bash
-export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+export LAPTOP_IP="$(curl -4 -s https://ifconfig.me)"
 bundle exec rake azure:one_node:update_source_ip
 ```
 
@@ -336,7 +336,7 @@ bundle exec rake azure:multi_node:static
 Run acceptance tests on fresh Azure infrastructure and clean up afterwards:
 
 ```bash
-export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+export LAPTOP_IP="$(curl -4 -s https://ifconfig.me)"
 export AZURE_ONE_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:one_node:acceptance_ephemeral
 ```
@@ -356,7 +356,9 @@ That task writes `spec/fixtures/litmus_inventory.yaml` from the Azure resources,
 checks that your current public IP still matches the Azure SSH allow-list,
 checks SSH connectivity, installs the Puppet 8 agent with Litmus, stages the
 control repo fixtures on the VM, applies `role::elk_stack`, and runs
-`spec/acceptance/role_elk_stack_spec.rb`.
+`spec/acceptance/role_elk_stack_spec.rb`. It then runs the shared pipeline
+acceptance spec to prove a log event reaches Elasticsearch through Filebeat and
+Logstash.
 
 The acceptance flow can also be run in smaller steps:
 
@@ -366,13 +368,17 @@ bundle exec rake azure:one_node:source_ip
 bundle exec rake azure:one_node:check_connectivity
 bundle exec rake azure:one_node:install_agent
 TARGET_HOST=<public-ip> bundle exec rspec spec/acceptance/role_elk_stack_spec.rb
+LOG_SOURCE_TARGET=<public-ip> \
+  ELASTICSEARCH_TARGET=<public-ip> \
+  ELASTICSEARCH_URL=http://localhost:9200 \
+  bundle exec rake azure:pipeline_acceptance
 ```
 
 Run multi-node acceptance tests on fresh Azure infrastructure and clean up
 afterwards:
 
 ```bash
-export LAPTOP_IP="$(curl -s https://ifconfig.me)"
+export LAPTOP_IP="$(curl -4 -s https://ifconfig.me)"
 export AZURE_MULTI_NODE_ADMIN_SSH_PUBLIC_KEY="$(cat ~/.ssh/id_ed25519.pub)"
 bundle exec rake azure:multi_node:acceptance_ephemeral
 ```
@@ -389,7 +395,9 @@ connectivity, installs the Puppet 8 agent on each VM, stages the control repo
 fixtures, applies `role::elk_multi_node`, and runs
 `spec/acceptance/role_elk_multi_node_spec.rb`. The acceptance spec checks the
 role-specific services and cross-node configuration for Elasticsearch,
-Logstash, Kibana, and Edge/Nginx.
+Logstash, Kibana, and Edge/Nginx. It then runs the shared pipeline acceptance
+spec from the Edge VM to the Elasticsearch VM to prove a log event reaches
+Elasticsearch through Filebeat and Logstash.
 
 The multi-node acceptance flow can also be run in smaller steps. Unlike the
 one-node spec, the multi-node spec must be run once per VM with both the role
@@ -414,6 +422,10 @@ ELK_LAB_ROLE=kibana \
 ELK_LAB_ROLE=edge \
   TARGET_HOST=<edge-public-ip> \
   bundle exec rspec spec/acceptance/role_elk_multi_node_spec.rb
+LOG_SOURCE_TARGET=<edge-public-ip> \
+  ELASTICSEARCH_TARGET=<elasticsearch-public-ip> \
+  ELASTICSEARCH_URL=http://localhost:9200 \
+  bundle exec rake azure:pipeline_acceptance
 ```
 
 ## Security Note
