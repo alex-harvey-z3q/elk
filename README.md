@@ -49,25 +49,24 @@ testing, and demonstration of a roles-and-profiles Puppet control repo.
                     +-------------+
                     |  Filebeat   |
                     | filestream  |
-                    +------+------+             HTTP :80
-                           |                         ^
-                           | Beats :5044             |
-                           v                         |
-                    +-------------+           +------+------+
-                    |  Logstash   |           |    Nginx    |
-                    | main pipe   |           | reverse     |
-                    +------+------+           | proxy       |
-                           |                  +------+------+
-                           | HTTP :9200              |
-                           v                         |
-                 +---------+---------+               |
-                 | Elasticsearch     |               |
-                 | single node       |               |
-                 | lab security off  |               |
-                 +---------+---------+               |
-                           ^                         |
-                           | HTTP :9200              |
-                           |                         v
+                    +------+------+              HTTP :80
+                           |                          ^
+                           | Beats :5044              |
+                           v                          |
+                    +-------------+            +------+------+
+                    |  Logstash   |            |    Nginx    |
+                    |    pipe     |            |   reverse   |
+                    +------+------+            |    proxy    |
+                           |                   +------+------+
+                           | HTTP :9200               |
+                           v                          |
+                 +---------+---------+                |
+                 |   Elasticsearch   |                |
+                 |     cluster       |                |
+                 +---------+---------+                |
+                           ^                          |
+                           | HTTP :9200               |
+                           |                          v
                     +------+------+           HTTP :5601
                     |   Kibana    |<------------------+
                     | dashboards  |
